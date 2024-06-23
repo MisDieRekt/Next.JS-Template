@@ -1,7 +1,7 @@
 import { GeistSans } from "geist/font/sans";
 import "./globals.css";
 import "@mantine/core/styles.css";
-import 'mantine-datatable/styles.layer.css';
+import "mantine-datatable/styles.layer.css";
 import NavBar from "@/components/navbar";
 import Footer from "@/components/Footer";
 import { createClient } from "@/utils/supabase/client";
@@ -35,7 +35,7 @@ export default function RootLayout({
       </head>
       <body className="bg-background text-foreground">
         <NavBar isSupabaseConnected={isSupabaseConnected} />
-        <main className="min-h-screen flex flex-col items-center">
+        <main className="min-h-screen flex flex-col items-center mt-16">
           <MantineProvider>{children}</MantineProvider>
         </main>
         <Footer />
