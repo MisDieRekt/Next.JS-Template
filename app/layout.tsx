@@ -36,9 +36,9 @@ export default function RootLayout({
         <ColorSchemeScript />
       </head>
       <body className="bg-background text-foreground">
-        <MantineProvider>
+        <MantineProvider defaultColorScheme="auto">
           <ModalsProvider>
-            <Notifications position="bottom-right" zIndex={10000}/>
+            <Notifications position="bottom-right" zIndex={10000} />
             <NavBar isSupabaseConnected={isSupabaseConnected} />
             <main className="min-h-screen flex flex-col items-center mt-16">
               {children}

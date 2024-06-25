@@ -198,6 +198,9 @@ const Example = () => {
     enableGrouping: true,
     enableColumnPinning: true,
     enableRowSelection: true,
+    mantineSelectCheckboxProps: {
+      color: "red",
+    },
     getRowId: (originalRow) => originalRow.AutoIndex,
     initialState: {
       showColumnFilters: true,
@@ -205,7 +208,7 @@ const Example = () => {
       columnPinning: {
         left: ["mrt-row-expand", "mrt-row-select"],
       },
-      pagination: { pageSize: 50, pageIndex: 0 },
+      pagination: { pageSize: 25, pageIndex: 0 },
     },
     paginationDisplayMode: "pages",
     positionToolbarAlertBanner: "bottom",
