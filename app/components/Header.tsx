@@ -1,6 +1,9 @@
 import NextLogo from "./NextLogo";
 import SupabaseLogo from "./SupabaseLogo";
 
+import  Notify  from "@/components/MantineButton"
+import LoginButton from "./LoginButton";
+
 export default function Header() {
   return (
     <div className="flex flex-col gap-16 items-center">
@@ -38,6 +41,13 @@ export default function Header() {
           Next.js
         </a>
       </p>
+
+      <Notify
+        title="Custom Title"
+        message="Custom message goes here."
+        color="orange"
+      />
+      <LoginButton />
       <div className="w-full p-[1px] bg-gradient-to-r from-transparent via-foreground/10 to-transparent my-8" />
     </div>
   );

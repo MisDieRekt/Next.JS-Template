@@ -5,7 +5,9 @@ import "mantine-datatable/styles.layer.css";
 import NavBar from "@/components/navbar";
 import Footer from "@/components/Footer";
 import { createClient } from "@/utils/supabase/client";
-
+import { Notifications } from "@mantine/notifications";
+import "@mantine/notifications/styles.css";
+import { ModalsProvider } from "@mantine/modals";
 import { ColorSchemeScript, MantineProvider } from "@mantine/core";
 
 const defaultUrl = process.env.VERCEL_URL
@@ -34,11 +36,16 @@ export default function RootLayout({
         <ColorSchemeScript />
       </head>
       <body className="bg-background text-foreground">
-        <NavBar isSupabaseConnected={isSupabaseConnected} />
-        <main className="min-h-screen flex flex-col items-center mt-16">
-          <MantineProvider>{children}</MantineProvider>
-        </main>
-        <Footer />
+        <MantineProvider>
+          <ModalsProvider>
+            <Notifications position="bottom-right" zIndex={10000}/>
+            <NavBar isSupabaseConnected={isSupabaseConnected} />
+            <main className="min-h-screen flex flex-col items-center mt-16">
+              {children}
+            </main>
+            <Footer />
+          </ModalsProvider>
+        </MantineProvider>
       </body>
     </html>
   );
