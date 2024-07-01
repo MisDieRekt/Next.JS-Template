@@ -21,7 +21,7 @@ import {
   Select,
 } from "@mantine/core";
 import { DateInput } from "@mantine/dates";
-import Notify from "@/components/MantineButton"; // Import Notify component
+import { notifications } from "@mantine/notifications"; // Import notifications object directly
 
 interface Order {
   AutoIndex: string;
@@ -38,11 +38,6 @@ const Example = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [currentUser, setCurrentUser] = useState<string | null>(null);
-  const [notification, setNotification] = useState<{
-    title: string;
-    message: string;
-    color: string;
-  } | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
 
   const fetchUser = async () => {
@@ -69,7 +64,7 @@ const Example = () => {
     setError(null);
     try {
       const response = await fetch(
-        "https://dkapi.totai.co.za:9191/sales/getuncaptured",
+        process.env.NEXT_PUBLIC_API_URL + "/sales/getuncaptured",
         {
           method: "POST",
           headers: {
@@ -105,6 +100,7 @@ const Example = () => {
         : new Date().toISOString(),
       Priority: order.priority === "High" ? 1 : 0,
       DelMethodID: order.DelMethodID,
+      AccountName: order.cAccountName, // Map cAccountName to AccountName
     }));
 
     try {
@@ -123,23 +119,30 @@ const Example = () => {
       }
       const result = await response.json();
       console.log("Capture result:", result);
-      setNotification({
+
+      const message =
+        selectedOrders.length === 1
+          ? "Order successfully captured."
+          : `${selectedOrders.length} orders captured successfully.`;
+
+      notifications.show({
         title: "Capture Successful",
-        message: "Orders have been successfully captured.",
+        message,
         color: "green",
+        radius: "md",
       });
-      fetchData(); // Refresh table data after capturing orders
+
+      setTimeout(() => {
+        fetchData(); // Refresh table data after capturing orders with a delay
+      }, 2000);
     } catch (error) {
       console.error("Error capturing orders:", error);
-      setNotification({
+      notifications.show({
         title: "Capture Failed",
         message: "An error occurred while capturing orders.",
         color: "red",
+        radius: "md",
       });
-    } finally {
-      setTimeout(() => {
-        setNotification(null); // Reset notification after 3 seconds
-      }, 3000);
     }
   };
 
@@ -196,6 +199,9 @@ const Example = () => {
     enableGrouping: true,
     enableColumnPinning: true,
     enableRowSelection: true,
+    mantineSelectCheckboxProps: {
+      color: "red",
+    },
     getRowId: (originalRow) => originalRow.AutoIndex,
     initialState: {
       showColumnFilters: true,
@@ -203,7 +209,7 @@ const Example = () => {
       columnPinning: {
         left: ["mrt-row-expand", "mrt-row-select"],
       },
-      pagination: { pageSize: 50, pageIndex: 0 },
+      pagination: { pageSize: 25, pageIndex: 0 },
     },
     paginationDisplayMode: "pages",
     positionToolbarAlertBanner: "bottom",
@@ -249,22 +255,6 @@ const Example = () => {
           </Flex>
           <Flex style={{ gap: "8px" }}>
             <Button
-              color="red"
-              disabled={!table.getIsSomeRowsSelected()}
-              onClick={handleDeactivate}
-              variant="filled"
-            >
-              Deactivate
-            </Button>
-            <Button
-              color="green"
-              disabled={!table.getIsSomeRowsSelected()}
-              onClick={handleActivate}
-              variant="filled"
-            >
-              Activate
-            </Button>
-            <Button
               color="blue"
               disabled={!table.getIsSomeRowsSelected()}
               onClick={handleCapture}
@@ -280,13 +270,6 @@ const Example = () => {
 
   return (
     <div>
-      {notification && (
-        <Notify
-          title={notification.title}
-          message={notification.message}
-          color={notification.color}
-        />
-      )}
       {error && <Text color="red">{error.message}</Text>}
       <Group>
         <Button onClick={fetchData} color="blue">

@@ -3,7 +3,7 @@
 import "@mantine/core/styles.css";
 import "@mantine/dates/styles.css"; // if using mantine date picker features
 import "mantine-react-table/styles.css"; // make sure MRT styles were imported in your app root (once)
-import { useMemo, useEffect, useState } from "react";
+import { useMemo, useEffect, useState, useCallback } from "react";
 import {
   MantineReactTable,
   useMantineReactTable,
@@ -21,31 +21,39 @@ import {
   Select,
 } from "@mantine/core";
 import { DateInput } from "@mantine/dates";
-import Notify from "@/components/MantineButton"; // Import Notify component
+import { notifications } from "@mantine/notifications"; // Import notifications object directly
 
 interface Order {
-  AutoIndex: string;
+  AutoIndex: number;
   OrderNum: string;
-  DeliveryNote: string;
-  ExtOrderNum: string;
-  cAccountName: string;
-  DelMethodID: number;
-  priority: string; // Add priority field
+  Priority: number;
+  CurrentStatus: number;
+  Customer_Name: string | null;
+  Delivery_Method: string | null;
 }
+
+const statuses = [
+  { StatusNum: 1, StatusText: "Order Captured" },
+  { StatusNum: 2, StatusText: "Order At Finance" },
+  { StatusNum: 3, StatusText: "Returned From Finance" },
+  { StatusNum: 4, StatusText: "Incorrect Pricing" },
+  { StatusNum: 5, StatusText: "New Month Orders" },
+  { StatusNum: 6, StatusText: "Back Order" },
+  { StatusNum: 7, StatusText: "Pending Order - Custom" },
+  { StatusNum: 8, StatusText: "Awaiting Finance Approval" },
+  { StatusNum: 9, StatusText: "Awaiting Confirmation" },
+  { StatusNum: 10, StatusText: "Awaiting Payment" },
+  { StatusNum: 11, StatusText: "Sent To Dispatch" },
+];
 
 const Example = () => {
   const [data, setData] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [currentUser, setCurrentUser] = useState<string | null>(null);
-  const [notification, setNotification] = useState<{
-    title: string;
-    message: string;
-    color: string;
-  } | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
 
-  const fetchUser = async () => {
+  const fetchUser = useCallback(async () => {
     try {
       const response = await fetch("/api/fetchUser");
       const result = await response.json();
@@ -58,24 +66,24 @@ const Example = () => {
     } catch (error) {
       console.error("Error fetching user data:", error);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchUser();
-  }, []);
+  }, [fetchUser]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const response = await fetch(
-        "https://dkapi.totai.co.za:9191/sales/getuncaptured",
+        process.env.NEXT_PUBLIC_API_URL + "/sales/fetchcaptured",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ requestOrders: "GetUnprocessed" }),
+          body: JSON.stringify({ requestOrders: "fetchcaptured" }),
         }
       );
       if (!response.ok) {
@@ -84,104 +92,134 @@ const Example = () => {
       const result = await response.json();
       setData(
         result.unmatchedOrders.map((order: any) => ({
-          ...order,
-          priority: "Normal",
+          AutoIndex: order.AutoIndex,
+          OrderNum: order.OrderNum,
+          Priority: order.Priority,
+          CurrentStatus: 1, // Assuming a default status if not provided
+          Customer_Name: order.AccountName,
+          Delivery_Method: null, // Assuming Delivery Method is not provided
         }))
-      ); // Initialize priority
+      );
     } catch (error) {
       setError(error as Error);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const captureOrders = async (selectedOrders: Order[]) => {
-    const ordersToCapture = selectedOrders.map((order) => ({
+  const setStatuses = async (selectedOrders: Order[]) => {
+    const ordersToUpdate = selectedOrders.map((order) => ({
       AutoIndex: order.AutoIndex,
       OrdNum: order.OrderNum,
-      User: currentUser || "unknown",
-      DateCaptured: selectedDate
-        ? selectedDate.toISOString()
-        : new Date().toISOString(),
-      Priority: order.priority === "High" ? 1 : 0,
-      DelMethodID: order.DelMethodID,
+      Priority: order.Priority,
+      User: currentUser,
+      Status: order.CurrentStatus,
     }));
 
     try {
       const response = await fetch(
-        "https://dkapi.totai.co.za:9191/sales/captureorder",
+        process.env.NEXT_PUBLIC_API_URL + "/sales/changestatus",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(ordersToCapture),
+          body: JSON.stringify(ordersToUpdate),
         }
       );
+
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
+
       const result = await response.json();
-      console.log("Capture result:", result);
-      setNotification({
-        title: "Capture Successful",
-        message: "Orders have been successfully captured.",
+      console.log("Update result:", result);
+
+      notifications.show({
+        title: "Update Successful",
+        message: "Order statuses updated successfully.",
         color: "green",
+        radius: "md",
       });
-      fetchData(); // Refresh table data after capturing orders
-    } catch (error) {
-      console.error("Error capturing orders:", error);
-      setNotification({
-        title: "Capture Failed",
-        message: "An error occurred while capturing orders.",
-        color: "red",
-      });
-    } finally {
+
       setTimeout(() => {
-        setNotification(null); // Reset notification after 3 seconds
-      }, 3000);
+        fetchData(); // Refresh table data after updating orders with a delay
+      }, 2000);
+    } catch (error) {
+      console.error("Error updating order statuses:", error);
+      notifications.show({
+        title: "Update Failed",
+        message: "An error occurred while updating order statuses.",
+        color: "red",
+        radius: "md",
+      });
     }
   };
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   const columns = useMemo<MRT_ColumnDef<Order>[]>(
     () => [
       {
-        accessorKey: "cAccountName",
-        header: "Account Name",
+        accessorKey: "Customer_Name",
+        header: "Customer Name",
       },
       {
         accessorKey: "OrderNum",
         header: "Order Number",
       },
       {
-        accessorKey: "DeliveryNote",
-        header: "Delivery Note",
-      },
-      {
-        accessorKey: "ExtOrderNum",
-        header: "External Order Number",
-      },
-      {
-        accessorKey: "priority",
+        accessorKey: "Priority",
         header: "Priority",
         Cell: ({ row }) => (
           <Select
             data={["Normal", "High"]}
-            value={row.original.priority}
+            value={row.original.Priority === 1 ? "High" : "Normal"}
             onChange={(value) => {
               const updatedData = data.map((order) =>
                 order.AutoIndex === row.original.AutoIndex
-                  ? { ...order, priority: value || "Normal" }
+                  ? { ...order, Priority: value === "High" ? 1 : 0 }
                   : order
               );
               setData(updatedData);
             }}
           />
         ),
+      },
+      {
+        accessorKey: "CurrentStatus",
+        header: "Current Status",
+        Cell: ({ row }) =>
+          statuses.find(
+            (status) => status.StatusNum === row.original.CurrentStatus
+          )?.StatusText || "Unknown",
+      },
+      {
+        accessorKey: "SetStatus",
+        header: "Set Status",
+        Cell: ({ row }) => (
+          <Select
+            data={statuses.map((status) => ({
+              value: status.StatusNum.toString(),
+              label: status.StatusText,
+            }))}
+            value={row.original.CurrentStatus.toString()}
+            onChange={(value) => {
+              const updatedData = data.map((order) =>
+                order.AutoIndex === row.original.AutoIndex
+                  ? { ...order, CurrentStatus: parseInt(value || "0") }
+                  : order
+              );
+              setData(updatedData);
+            }}
+          />
+        ),
+      },
+      {
+        accessorKey: "Delivery_Method",
+        header: "Delivery Method",
       },
     ],
     [data]
@@ -196,14 +234,17 @@ const Example = () => {
     enableGrouping: true,
     enableColumnPinning: true,
     enableRowSelection: true,
-    getRowId: (originalRow) => originalRow.AutoIndex,
+    mantineSelectCheckboxProps: {
+      color: "red",
+    },
+    getRowId: (originalRow) => originalRow.AutoIndex.toString(),
     initialState: {
       showColumnFilters: true,
       showGlobalFilter: true,
       columnPinning: {
         left: ["mrt-row-expand", "mrt-row-select"],
       },
-      pagination: { pageSize: 50, pageIndex: 0 },
+      pagination: { pageSize: 25, pageIndex: 0 },
     },
     paginationDisplayMode: "pages",
     positionToolbarAlertBanner: "bottom",
@@ -214,24 +255,15 @@ const Example = () => {
     mantineSearchTextInputProps: {
       placeholder: "Search Orders",
     },
+    mantineTableBodyRowProps: ({ row }) => ({
+      className: row.original.Priority === 1 ? "high-priority" : undefined,
+    }),
     renderTopToolbar: ({ table }) => {
-      const handleDeactivate = () => {
-        table.getSelectedRowModel().flatRows.map((row) => {
-          alert("deactivating " + row.getValue("OrderNum"));
-        });
-      };
-
-      const handleActivate = () => {
-        table.getSelectedRowModel().flatRows.map((row) => {
-          alert("activating " + row.getValue("OrderNum"));
-        });
-      };
-
-      const handleCapture = () => {
+      const handleSetStatuses = () => {
         const selectedRows = table
           .getSelectedRowModel()
           .flatRows.map((row) => row.original);
-        captureOrders(selectedRows);
+        setStatuses(selectedRows);
       };
 
       return (
@@ -249,28 +281,12 @@ const Example = () => {
           </Flex>
           <Flex style={{ gap: "8px" }}>
             <Button
-              color="red"
-              disabled={!table.getIsSomeRowsSelected()}
-              onClick={handleDeactivate}
-              variant="filled"
-            >
-              Deactivate
-            </Button>
-            <Button
-              color="green"
-              disabled={!table.getIsSomeRowsSelected()}
-              onClick={handleActivate}
-              variant="filled"
-            >
-              Activate
-            </Button>
-            <Button
               color="blue"
               disabled={!table.getIsSomeRowsSelected()}
-              onClick={handleCapture}
+              onClick={handleSetStatuses}
               variant="filled"
             >
-              Capture
+              Set Statuses
             </Button>
           </Flex>
         </Flex>
@@ -280,13 +296,6 @@ const Example = () => {
 
   return (
     <div>
-      {notification && (
-        <Notify
-          title={notification.title}
-          message={notification.message}
-          color={notification.color}
-        />
-      )}
       {error && <Text color="red">{error.message}</Text>}
       <Group>
         <Button onClick={fetchData} color="blue">
