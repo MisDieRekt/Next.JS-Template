@@ -23,9 +23,12 @@
     "dayjs": "^1.11.11",
     "embla-carousel-react": "^8.1.5",
     "geist": "^1.2.1",
+    "html5-qrcode": "^2.3.8",
+    "lodash": "^4.17.21",
     "mantine-datatable": "^7.10.2",
     "mantine-react-table": "^2.0.0-beta.5",
     "next": "latest",
+    "qr-scanner": "^1.4.2",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "recharts": "^2.12.7",
@@ -33,6 +36,7 @@
     "typescript": "5.3.3"
   },
   "devDependencies": {
+    "@types/lodash": "^4.17.6",
     "@types/node": "20.11.5",
     "@types/react": "18.2.48",
     "@types/react-dom": "18.2.18",

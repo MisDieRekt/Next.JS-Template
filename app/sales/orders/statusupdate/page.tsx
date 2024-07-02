@@ -10,6 +10,7 @@ import {
   type MRT_ColumnDef,
   MRT_GlobalFilterTextInput,
   MRT_ToggleFiltersButton,
+  type MRT_TableOptions,
 } from "mantine-react-table";
 import {
   Box,
@@ -22,6 +23,7 @@ import {
 } from "@mantine/core";
 import { DateInput } from "@mantine/dates";
 import { notifications } from "@mantine/notifications"; // Import notifications object directly
+import { debounce } from "lodash"; // Import lodash debounce
 
 interface Order {
   AutoIndex: number;
@@ -30,6 +32,7 @@ interface Order {
   CurrentStatus: number;
   Customer_Name: string | null;
   Delivery_Method: string | null;
+  isEditing: boolean; // Add isEditing property to track edit mode
 }
 
 const statuses = [
@@ -44,6 +47,7 @@ const statuses = [
   { StatusNum: 9, StatusText: "Awaiting Confirmation" },
   { StatusNum: 10, StatusText: "Awaiting Payment" },
   { StatusNum: 11, StatusText: "Sent To Dispatch" },
+  { StatusNum: 21, StatusText: "Sent To Collections" },
 ];
 
 const Example = () => {
@@ -96,12 +100,15 @@ const Example = () => {
           OrderNum: order.OrderNum,
           Priority: order.Priority,
           CurrentStatus: 1, // Assuming a default status if not provided
-          Customer_Name: order.AccountName,
-          Delivery_Method: null, // Assuming Delivery Method is not provided
+          Customer_Name: order.AccountName ?? "", // Default to empty string if null
+          Delivery_Method: order.Delivery_Method ?? "", // Default to empty string if null
+          isEditing: false, // Initialize isEditing to false
         }))
       );
+      console.log("Fetched data:", result.unmatchedOrders); // Debug log fetched data
     } catch (error) {
       setError(error as Error);
+      console.error("Error fetching data:", error); // Debug log error
     } finally {
       setLoading(false);
     }
@@ -160,37 +167,58 @@ const Example = () => {
     fetchData();
   }, [fetchData]);
 
+  const toggleEdit = (index: number) => {
+    setData((prevData) =>
+      prevData.map((order, i) =>
+        i === index ? { ...order, isEditing: !order.isEditing } : order
+      )
+    );
+  };
+
   const columns = useMemo<MRT_ColumnDef<Order>[]>(
     () => [
       {
         accessorKey: "Customer_Name",
         header: "Customer Name",
+        filterVariant: "text",
       },
       {
         accessorKey: "OrderNum",
         header: "Order Number",
+        filterVariant: "text",
       },
       {
         accessorKey: "Priority",
         header: "Priority",
-        Cell: ({ row }) => (
-          <Select
-            data={["Normal", "High"]}
-            value={row.original.Priority === 1 ? "High" : "Normal"}
-            onChange={(value) => {
-              const updatedData = data.map((order) =>
-                order.AutoIndex === row.original.AutoIndex
-                  ? { ...order, Priority: value === "High" ? 1 : 0 }
-                  : order
-              );
-              setData(updatedData);
-            }}
-          />
-        ),
+        filterVariant: "select",
+        mantineFilterSelectProps: {
+          data: ["Normal", "High"],
+        },
+        Cell: ({ row }) =>
+          row.original.isEditing ? (
+            <Select
+              data={["Normal", "High"]}
+              value={row.original.Priority === 1 ? "High" : "Normal"}
+              onChange={(value) => {
+                const updatedData = data.map((order) =>
+                  order.AutoIndex === row.original.AutoIndex
+                    ? { ...order, Priority: value === "High" ? 1 : 0 }
+                    : order
+                );
+                setData(updatedData);
+              }}
+            />
+          ) : (
+            <Text>{row.original.Priority === 1 ? "High" : "Normal"}</Text>
+          ),
       },
       {
         accessorKey: "CurrentStatus",
         header: "Current Status",
+        filterVariant: "select",
+        mantineFilterSelectProps: {
+          data: statuses.map((status) => status.StatusText),
+        },
         Cell: ({ row }) =>
           statuses.find(
             (status) => status.StatusNum === row.original.CurrentStatus
@@ -199,35 +227,59 @@ const Example = () => {
       {
         accessorKey: "SetStatus",
         header: "Set Status",
-        Cell: ({ row }) => (
-          <Select
-            data={statuses.map((status) => ({
-              value: status.StatusNum.toString(),
-              label: status.StatusText,
-            }))}
-            value={row.original.CurrentStatus.toString()}
-            onChange={(value) => {
-              const updatedData = data.map((order) =>
-                order.AutoIndex === row.original.AutoIndex
-                  ? { ...order, CurrentStatus: parseInt(value || "0") }
-                  : order
-              );
-              setData(updatedData);
-            }}
-          />
-        ),
+        filterVariant: "select",
+        mantineFilterSelectProps: {
+          data: statuses.map((status) => ({
+            value: status.StatusNum.toString(),
+            label: status.StatusText,
+          })),
+        },
+        Cell: ({ row }) =>
+          row.original.isEditing ? (
+            <Select
+              data={statuses.map((status) => ({
+                value: status.StatusNum.toString(),
+                label: status.StatusText,
+              }))}
+              value={row.original.CurrentStatus.toString()}
+              onChange={(value) => {
+                const updatedData = data.map((order) =>
+                  order.AutoIndex === row.original.AutoIndex
+                    ? { ...order, CurrentStatus: parseInt(value || "0") }
+                    : order
+                );
+                setData(updatedData);
+              }}
+            />
+          ) : (
+            <Text>
+              {statuses.find(
+                (status) => status.StatusNum === row.original.CurrentStatus
+              )?.StatusText || "Unknown"}
+            </Text>
+          ),
       },
       {
         accessorKey: "Delivery_Method",
         header: "Delivery Method",
+        filterVariant: "text",
+      },
+      {
+        id: "edit",
+        header: "Edit",
+        Cell: ({ row }) => (
+          <Button onClick={() => toggleEdit(row.index)}>
+            {row.original.isEditing ? "Save" : "Edit"}
+          </Button>
+        ),
       },
     ],
     [data]
   );
 
-  const table = useMantineReactTable({
+  const tableOptions: MRT_TableOptions<Order> = {
     columns,
-    data: data || [], // Fallback to an empty array if data is null
+    data: useMemo(() => data, [data]), // Memoize data to avoid unnecessary re-renders
     enableColumnFilterModes: true,
     enableColumnOrdering: true,
     enableFacetedValues: true,
@@ -237,7 +289,7 @@ const Example = () => {
     mantineSelectCheckboxProps: {
       color: "red",
     },
-    getRowId: (originalRow) => originalRow.AutoIndex.toString(),
+    getRowId: (originalRow) => originalRow.AutoIndex.toString(), // Convert number to string
     initialState: {
       showColumnFilters: true,
       showGlobalFilter: true,
@@ -254,9 +306,11 @@ const Example = () => {
     },
     mantineSearchTextInputProps: {
       placeholder: "Search Orders",
+      onChange: debounce((e) => table.setGlobalFilter(e.target.value), 300), // Debounce the search input
     },
     mantineTableBodyRowProps: ({ row }) => ({
-      className: row.original.Priority === 1 ? "high-priority" : undefined,
+      className:
+        row.original.Priority === 1 ? "high-priority bold-text" : undefined,
     }),
     renderTopToolbar: ({ table }) => {
       const handleSetStatuses = () => {
@@ -292,7 +346,9 @@ const Example = () => {
         </Flex>
       );
     },
-  });
+  };
+
+  const table = useMantineReactTable<Order>(tableOptions);
 
   return (
     <div>

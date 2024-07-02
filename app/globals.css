@@ -60,5 +60,9 @@
 }
 
 .high-priority {
-  animation: pinkShimmer 4s infinite;
+  animation: pinkShimmer 3s infinite;
+}
+
+.bold-text {
+  font-weight: bold;
 }
