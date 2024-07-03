@@ -83,6 +83,7 @@ const BarcodeScanner: React.FC = () => {
             {
               fps: 10, // Optional, frame per second for qr code scanning
               qrbox: { width: 250, height: 250 }, // Optional, if you want bounded box UI
+              aspectRatio: 1.0,
             },
             handleScan,
             handleError
@@ -216,8 +217,11 @@ const BarcodeScanner: React.FC = () => {
         }
         .scanner {
           width: 100%;
-          height: 300px;
+          height: auto;
+          max-height: 300px;
           margin-bottom: 20px;
+          position: relative;
+          overflow: hidden;
         }
         .input-section {
           width: 100%;
