@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import React, { useEffect, useRef, useState } from "react";
-import { Html5Qrcode } from "html5-qrcode";
+import React, { useEffect, useRef, useState } from 'react';
+import { Html5Qrcode } from 'html5-qrcode';
 
 interface StockInfo {
   StockLink: number;
@@ -55,12 +55,11 @@ const fetchStockInfo = async (
 const BarcodeScanner: React.FC = () => {
   const [barcode, setBarcode] = useState<string | null>(null);
   const [stockInfo, setStockInfo] = useState<StockInfo | null>(null);
-  const [lastSuccessfulScan, setLastSuccessfulScan] =
-    useState<StockInfo | null>(null);
+  const [lastSuccessfulScan, setLastSuccessfulScan] = useState<StockInfo | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
-  const scannerId = "html5qr-code-scanner";
+  const scannerId = 'html5qr-code-scanner';
 
   useEffect(() => {
     if (!html5QrCodeRef.current) {
@@ -70,101 +69,60 @@ const BarcodeScanner: React.FC = () => {
 
     Html5Qrcode.getCameras().then((devices) => {
       if (devices && devices.length) {
-        const rearCamera =
-          devices.find((device) =>
-            device.label.toLowerCase().includes("back")
-          ) || devices[0];
+        const rearCamera = devices.find(device => device.label.toLowerCase().includes('back')) || devices[0];
         const cameraId = rearCamera.id;
         html5QrCode
           .start(
             cameraId,
             {
               fps: 10, // Optional, frame per second for qr code scanning
-              qrbox: { width: 250, height: 250 }, // Optional, if you want bounded box UI
+              qrbox: { width: 250, height: 250 } // Optional, if you want bounded box UI
             },
             handleScan,
             handleError
           )
           .catch((err) => {
-            console.error("Unable to start scanning", err);
+            console.error('Unable to start scanning', err);
           });
       }
     });
 
     return () => {
-      html5QrCode
-        .stop()
-        .catch((err) => console.error("Unable to stop scanning", err));
+      html5QrCode.stop().catch((err) => console.error('Unable to stop scanning', err));
     };
   }, []);
 
   const handleScan = (decodedText: string) => {
     setBarcode(decodedText);
-    fetchStockInfo(
-      decodedText,
-      (data) => {
-        setStockInfo(data);
-        setLastSuccessfulScan(data); // Store the last successful scan
-      },
-      setIsLoading,
-      setError
-    );
+    fetchStockInfo(decodedText, (data) => {
+      setStockInfo(data);
+      setLastSuccessfulScan(data); // Store the last successful scan
+    }, setIsLoading, setError);
   };
 
   const handleError = (err: any) => {
-    console.error("Error scanning barcode/QR code:", err);
+    console.error('Error scanning barcode/QR code:', err);
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        margin: "20px",
-      }}
-    >
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '20px' }}>
       <h1>Scan Barcode/QR Code</h1>
-      <div
-        id={scannerId}
-        style={{ width: "300px", height: "300px", marginBottom: "20px" }}
-      ></div>
+      <div id={scannerId} style={{ width: '300px', height: '300px', marginBottom: '20px' }}></div>
       {isLoading && <p>Loading...</p>}
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {error && <p style={{ color: 'red' }}>{error}</p>}
       {stockInfo && (
-        <div style={{ textAlign: "left", marginTop: "20px" }}>
+        <div style={{ textAlign: 'left', marginTop: '20px' }}>
           <h2>Stock Information</h2>
-          <p>
-            <strong>Stock Link:</strong> {stockInfo.StockLink}
-          </p>
-          <p>
-            <strong>Code:</strong> {stockInfo.Code}
-          </p>
-          <p>
-            <strong>Description:</strong> {stockInfo.Description_1}
-          </p>
-          <p>
-            <strong>Full Description:</strong> {stockInfo.ucIIDesc1}
-          </p>
-          <p>
-            <strong>Details:</strong> {stockInfo.ucIIDesc2}{" "}
-            {stockInfo.ucIIDesc3}
-          </p>
-          <p>
-            <strong>Item Cost:</strong> {stockInfo.ItemCost}
-          </p>
-          <p>
-            <strong>Quantity On Hand:</strong> {stockInfo.QtyOnHand}
-          </p>
-          <p>
-            <strong>Barcode:</strong> {stockInfo.Barcode}
-          </p>
-          <p>
-            <strong>Export Price:</strong> {stockInfo.ExPr1}
-          </p>
-          <p>
-            <strong>Import Price:</strong> {stockInfo.InPr1}
-          </p>
+          <p><strong>Stock Link:</strong> {stockInfo.StockLink}</p>
+          <p><strong>Code:</strong> {stockInfo.Code}</p>
+          <p><strong>Description:</strong> {stockInfo.Description_1}</p>
+          <p><strong>Full Description:</strong> {stockInfo.ucIIDesc1}</p>
+          <p><strong>Details:</strong> {stockInfo.ucIIDesc2} {stockInfo.ucIIDesc3}</p>
+          <p><strong>Item Cost:</strong> {stockInfo.ItemCost}</p>
+          <p><strong>Quantity On Hand:</strong> {stockInfo.QtyOnHand}</p>
+          <p><strong>Barcode:</strong> {stockInfo.Barcode}</p>
+          <p><strong>Export Price:</strong> {stockInfo.ExPr1}</p>
+          <p><strong>Import Price:</strong> {stockInfo.InPr1}</p>
         </div>
       )}
     </div>
