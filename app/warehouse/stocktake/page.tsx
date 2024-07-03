@@ -140,93 +140,121 @@ const BarcodeScanner: React.FC = () => {
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        margin: "20px",
-      }}
-    >
-      <div style={{ marginBottom: "20px", zIndex: 1, position: "relative" }}>
+    <div className="container">
+      <div className="scanner-section">
         <h1>Scan Barcode/QR Code</h1>
-        <div
-          id={scannerId}
-          style={{ width: "300px", height: "300px", marginBottom: "20px" }}
-        ></div>
+        <div id={scannerId} className="scanner"></div>
       </div>
-      {isLoading && <p>Loading...</p>}
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      {stockInfo && (
-        <div style={{ textAlign: "left", marginTop: "20px" }}>
-          <h2>Stock Information</h2>
-          <p>
-            <strong>Stock Link:</strong> {stockInfo.StockLink}
-          </p>
-          <p>
-            <strong>Code:</strong> {stockInfo.Code}
-          </p>
-          <p>
-            <strong>Description:</strong> {stockInfo.Description_1}
-          </p>
-          <p>
-            <strong>Full Description:</strong> {stockInfo.ucIIDesc1}
-          </p>
-          <p>
-            <strong>Details:</strong> {stockInfo.ucIIDesc2}{" "}
-            {stockInfo.ucIIDesc3}
-          </p>
-          <p>
-            <strong>Item Cost:</strong> {stockInfo.ItemCost}
-          </p>
-          <p>
-            <strong>Quantity On Hand:</strong> {stockInfo.QtyOnHand}
-          </p>
-          <p>
-            <strong>Barcode:</strong> {stockInfo.Barcode}
-          </p>
-          <p>
-            <strong>Export Price:</strong> {stockInfo.ExPr1}
-          </p>
-          <p>
-            <strong>Import Price:</strong> {stockInfo.InPr1}
-          </p>
-        </div>
-      )}
-      <div
-        style={{
-          marginTop: "20px",
-          width: "100%",
-          maxWidth: "300px",
-          zIndex: 1,
-          position: "relative",
-        }}
-      >
+      <div className="input-section">
         <label htmlFor="quantity">Quantity</label>
         <input
           type="number"
           id="quantity"
           value={quantity}
           onChange={handleQuantityChange}
-          style={{ width: "100%", padding: "8px", marginTop: "10px" }}
         />
-        <label htmlFor="reference" style={{ marginTop: "10px" }}>
-          Reference
-        </label>
+        <label htmlFor="reference">Reference</label>
         <input
           type="text"
           id="reference"
           value={reference}
           onChange={handleReferenceChange}
-          style={{ width: "100%", padding: "8px", marginTop: "10px" }}
         />
-        <button
-          onClick={handleCaptureStock}
-          style={{ width: "100%", padding: "10px", marginTop: "20px" }}
-        >
-          Capture Stock
-        </button>
+        <button onClick={handleCaptureStock}>Capture Stock</button>
       </div>
+      <div className="info-section">
+        {isLoading && <p>Loading...</p>}
+        {error && <p style={{ color: "red" }}>{error}</p>}
+        {stockInfo && (
+          <div className="stock-info">
+            <h2>Stock Information</h2>
+            <p>
+              <strong>Stock Link:</strong> {stockInfo.StockLink}
+            </p>
+            <p>
+              <strong>Code:</strong> {stockInfo.Code}
+            </p>
+            <p>
+              <strong>Description:</strong> {stockInfo.Description_1}
+            </p>
+            <p>
+              <strong>Full Description:</strong> {stockInfo.ucIIDesc1}
+            </p>
+            <p>
+              <strong>Details:</strong> {stockInfo.ucIIDesc2}{" "}
+              {stockInfo.ucIIDesc3}
+            </p>
+            <p>
+              <strong>Item Cost:</strong> {stockInfo.ItemCost}
+            </p>
+            <p>
+              <strong>Quantity On Hand:</strong> {stockInfo.QtyOnHand}
+            </p>
+            <p>
+              <strong>Barcode:</strong> {stockInfo.Barcode}
+            </p>
+            <p>
+              <strong>Export Price:</strong> {stockInfo.ExPr1}
+            </p>
+            <p>
+              <strong>Import Price:</strong> {stockInfo.InPr1}
+            </p>
+          </div>
+        )}
+      </div>
+      <style jsx>{`
+        .container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          margin: 20px;
+        }
+        .scanner-section {
+          margin-bottom: 20px;
+          width: 100%;
+          max-width: 300px;
+        }
+        .scanner {
+          width: 100%;
+          height: 300px;
+          margin-bottom: 20px;
+        }
+        .input-section {
+          width: 100%;
+          max-width: 300px;
+          display: flex;
+          flex-direction: column;
+        }
+        .input-section label {
+          margin-top: 10px;
+        }
+        .input-section input {
+          width: 100%;
+          padding: 8px;
+          margin-top: 10px;
+        }
+        .input-section button {
+          width: 100%;
+          padding: 10px;
+          margin-top: 20px;
+        }
+        .info-section {
+          margin-top: 20px;
+          width: 100%;
+          max-width: 300px;
+        }
+        .stock-info {
+          text-align: left;
+          margin-top: 20px;
+        }
+        @media (max-width: 600px) {
+          .scanner-section,
+          .input-section,
+          .info-section {
+            width: 90%;
+          }
+        }
+      `}</style>
     </div>
   );
 };
