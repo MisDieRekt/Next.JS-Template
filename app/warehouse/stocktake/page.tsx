@@ -55,6 +55,8 @@ const fetchStockInfo = async (
 const BarcodeScanner: React.FC = () => {
   const [barcode, setBarcode] = useState<string | null>(null);
   const [stockInfo, setStockInfo] = useState<StockInfo | null>(null);
+  const [lastSuccessfulScan, setLastSuccessfulScan] =
+    useState<StockInfo | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
@@ -98,7 +100,15 @@ const BarcodeScanner: React.FC = () => {
 
   const handleScan = (decodedText: string) => {
     setBarcode(decodedText);
-    fetchStockInfo(decodedText, setStockInfo, setIsLoading, setError);
+    fetchStockInfo(
+      decodedText,
+      (data) => {
+        setStockInfo(data);
+        setLastSuccessfulScan(data); // Store the last successful scan
+      },
+      setIsLoading,
+      setError
+    );
   };
 
   const handleError = (err: any) => {
@@ -106,17 +116,19 @@ const BarcodeScanner: React.FC = () => {
   };
 
   return (
-    <div>
+    <div
+      style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
+    >
       <h1>Scan Barcode/QR Code</h1>
-      <div id={scannerId} style={{ width: "100%" }}></div>
+      <div id={scannerId} style={{ width: "300px", height: "300px" }}></div>
       {isLoading && <p>Loading...</p>}
       {error && <p style={{ color: "red" }}>{error}</p>}
       {stockInfo && (
         <div>
           <h2>Stock Information</h2>
-          <p>
+          {/* <p>
             <strong>Stock Link:</strong> {stockInfo.StockLink}
-          </p>
+          </p> */}
           <p>
             <strong>Code:</strong> {stockInfo.Code}
           </p>
