@@ -68,7 +68,11 @@ const BarcodeScanner: React.FC = () => {
 
     Html5Qrcode.getCameras().then((devices) => {
       if (devices && devices.length) {
-        const cameraId = devices[0].id;
+        const rearCamera =
+          devices.find((device) =>
+            device.label.toLowerCase().includes("back")
+          ) || devices[0];
+        const cameraId = rearCamera.id;
         html5QrCode
           .start(
             cameraId,
