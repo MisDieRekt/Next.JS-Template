@@ -57,7 +57,10 @@ const BarcodeScanner: React.FC = () => {
   const [stockInfo, setStockInfo] = useState<StockInfo | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasFlash, setHasFlash] = useState<boolean>(false);
+  const [flashOn, setFlashOn] = useState<boolean>(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const qrScannerRef = useRef<QrScanner | null>(null);
 
   useEffect(() => {
     if (videoRef.current) {
@@ -67,9 +70,15 @@ const BarcodeScanner: React.FC = () => {
         {
           highlightScanRegion: true,
           highlightCodeOutline: true,
+          preferredCamera: "environment",
         }
       );
       qrScanner.start();
+      qrScannerRef.current = qrScanner;
+
+      qrScanner.hasFlash().then((supported) => {
+        setHasFlash(supported);
+      });
 
       return () => {
         qrScanner.stop();
@@ -82,9 +91,26 @@ const BarcodeScanner: React.FC = () => {
     fetchStockInfo(data, setStockInfo, setIsLoading, setError);
   };
 
+  const toggleFlash = async () => {
+    if (qrScannerRef.current) {
+      if (flashOn) {
+        await qrScannerRef.current.turnFlashOff();
+        setFlashOn(false);
+      } else {
+        await qrScannerRef.current.turnFlashOn();
+        setFlashOn(true);
+      }
+    }
+  };
+
   return (
     <div>
       <h1>Scan Barcode/QR Code</h1>
+      {hasFlash && (
+        <button onClick={toggleFlash}>
+          {flashOn ? "Turn Flash Off" : "Turn Flash On"}
+        </button>
+      )}
       <video ref={videoRef} style={{ width: "100%" }}></video>
       {isLoading && <p>Loading...</p>}
       {error && <p style={{ color: "red" }}>{error}</p>}
