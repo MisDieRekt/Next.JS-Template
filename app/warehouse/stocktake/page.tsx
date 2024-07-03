@@ -152,9 +152,9 @@ const BarcodeScanner: React.FC = () => {
         {stockInfo && (
           <div className="stock-info">
             <h2>Stock Information</h2>
-            <p>
+            {/* <p>
               <strong>Stock Link:</strong> {stockInfo.StockLink}
-            </p>
+            </p> */}
             <p>
               <strong>Code:</strong> {stockInfo.Code}
             </p>
@@ -168,21 +168,21 @@ const BarcodeScanner: React.FC = () => {
               <strong>Details:</strong> {stockInfo.ucIIDesc2}{" "}
               {stockInfo.ucIIDesc3}
             </p>
-            <p>
+            {/* <p>
               <strong>Item Cost:</strong> {stockInfo.ItemCost}
-            </p>
-            <p>
+            </p> */}
+            {/* <p>
               <strong>Quantity On Hand:</strong> {stockInfo.QtyOnHand}
-            </p>
+            </p> */}
             <p>
               <strong>Barcode:</strong> {stockInfo.Barcode}
             </p>
-            <p>
+            {/* <p>
               <strong>Export Price:</strong> {stockInfo.ExPr1}
-            </p>
-            <p>
+            </p> */}
+            {/* <p>
               <strong>Import Price:</strong> {stockInfo.InPr1}
-            </p>
+            </p> */}
           </div>
         )}
       </div>
