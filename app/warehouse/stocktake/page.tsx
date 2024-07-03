@@ -148,19 +148,21 @@ const BarcodeScanner: React.FC = () => {
         margin: "20px",
       }}
     >
-      <h1>Scan Barcode/QR Code</h1>
-      <div
-        id={scannerId}
-        style={{ width: "300px", height: "300px", marginBottom: "20px" }}
-      ></div>
+      <div style={{ marginBottom: "20px", zIndex: 1, position: "relative" }}>
+        <h1>Scan Barcode/QR Code</h1>
+        <div
+          id={scannerId}
+          style={{ width: "300px", height: "300px", marginBottom: "20px" }}
+        ></div>
+      </div>
       {isLoading && <p>Loading...</p>}
       {error && <p style={{ color: "red" }}>{error}</p>}
       {stockInfo && (
-        <div style={{ textAlign: "left", marginTop: "30px" }}>
+        <div style={{ textAlign: "left", marginTop: "20px" }}>
           <h2>Stock Information</h2>
-          {/* <p>
+          <p>
             <strong>Stock Link:</strong> {stockInfo.StockLink}
-          </p> */}
+          </p>
           <p>
             <strong>Code:</strong> {stockInfo.Code}
           </p>
@@ -206,7 +208,7 @@ const BarcodeScanner: React.FC = () => {
           id="quantity"
           value={quantity}
           onChange={handleQuantityChange}
-          style={{ width: "100%", padding: "8px", marginTop: "50px" }}
+          style={{ width: "100%", padding: "8px", marginTop: "10px" }}
         />
         <label htmlFor="reference" style={{ marginTop: "10px" }}>
           Reference
