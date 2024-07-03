@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import QrScanner from "qr-scanner";
+import { Html5Qrcode } from "html5-qrcode";
 
 interface StockInfo {
   StockLink: number;
@@ -57,61 +57,54 @@ const BarcodeScanner: React.FC = () => {
   const [stockInfo, setStockInfo] = useState<StockInfo | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [hasFlash, setHasFlash] = useState<boolean>(false);
-  const [flashOn, setFlashOn] = useState<boolean>(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const qrScannerRef = useRef<QrScanner | null>(null);
+  const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
+  const scannerId = "html5qr-code-scanner";
 
   useEffect(() => {
-    if (videoRef.current) {
-      const qrScanner = new QrScanner(
-        videoRef.current,
-        (result) => handleScan(result.data),
-        {
-          highlightScanRegion: true,
-          highlightCodeOutline: true,
-          preferredCamera: "environment",
-        }
-      );
-      qrScanner.start();
-      qrScannerRef.current = qrScanner;
-
-      qrScanner.hasFlash().then((supported) => {
-        setHasFlash(supported);
-      });
-
-      return () => {
-        qrScanner.stop();
-      };
+    if (!html5QrCodeRef.current) {
+      html5QrCodeRef.current = new Html5Qrcode(scannerId);
     }
-  }, [videoRef]);
+    const html5QrCode = html5QrCodeRef.current;
 
-  const handleScan = (data: string) => {
-    setBarcode(data);
-    fetchStockInfo(data, setStockInfo, setIsLoading, setError);
+    Html5Qrcode.getCameras().then((devices) => {
+      if (devices && devices.length) {
+        const cameraId = devices[0].id;
+        html5QrCode
+          .start(
+            cameraId,
+            {
+              fps: 10, // Optional, frame per second for qr code scanning
+              qrbox: { width: 250, height: 250 }, // Optional, if you want bounded box UI
+            },
+            handleScan,
+            handleError
+          )
+          .catch((err) => {
+            console.error("Unable to start scanning", err);
+          });
+      }
+    });
+
+    return () => {
+      html5QrCode
+        .stop()
+        .catch((err) => console.error("Unable to stop scanning", err));
+    };
+  }, []);
+
+  const handleScan = (decodedText: string) => {
+    setBarcode(decodedText);
+    fetchStockInfo(decodedText, setStockInfo, setIsLoading, setError);
   };
 
-  const toggleFlash = async () => {
-    if (qrScannerRef.current) {
-      if (flashOn) {
-        await qrScannerRef.current.turnFlashOff();
-        setFlashOn(false);
-      } else {
-        await qrScannerRef.current.turnFlashOn();
-        setFlashOn(true);
-      }
-    }
+  const handleError = (err: any) => {
+    console.error("Error scanning barcode/QR code:", err);
   };
 
   return (
     <div>
       <h1>Scan Barcode/QR Code</h1>
-      {hasFlash && (
-        <button onClick={toggleFlash}>
-          {flashOn ? "Turn Flash Off" : "Turn Flash On"}
-        </button>
-      )}
-      <video ref={videoRef} style={{ width: "100%" }}></video>
+      <div id={scannerId} style={{ width: "100%" }}></div>
       {isLoading && <p>Loading...</p>}
       {error && <p style={{ color: "red" }}>{error}</p>}
       {stockInfo && (
