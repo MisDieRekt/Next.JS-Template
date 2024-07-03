@@ -117,14 +117,22 @@ const BarcodeScanner: React.FC = () => {
 
   return (
     <div
-      style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        margin: "20px",
+      }}
     >
       <h1>Scan Barcode/QR Code</h1>
-      <div id={scannerId} style={{ width: "300px", height: "300px" }}></div>
+      <div
+        id={scannerId}
+        style={{ width: "300px", height: "300px", marginBottom: "20px" }}
+      ></div>
       {isLoading && <p>Loading...</p>}
       {error && <p style={{ color: "red" }}>{error}</p>}
       {stockInfo && (
-        <div>
+        <div style={{ textAlign: "left" }}>
           <h2>Stock Information</h2>
           {/* <p>
             <strong>Stock Link:</strong> {stockInfo.StockLink}
