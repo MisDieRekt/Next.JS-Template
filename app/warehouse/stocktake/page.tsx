@@ -191,7 +191,15 @@ const BarcodeScanner: React.FC = () => {
           </p>
         </div>
       )}
-      <div style={{ marginTop: "20px", width: "100%", maxWidth: "300px" }}>
+      <div
+        style={{
+          marginTop: "20px",
+          width: "100%",
+          maxWidth: "300px",
+          zIndex: 1,
+          position: "relative",
+        }}
+      >
         <label htmlFor="quantity">Quantity</label>
         <input
           type="number"
