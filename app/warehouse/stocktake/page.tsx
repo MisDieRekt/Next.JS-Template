@@ -146,23 +146,6 @@ const BarcodeScanner: React.FC = () => {
         <h1>Scan Barcode/QR Code</h1>
         <div id={scannerId} className="scanner"></div>
       </div>
-      <div className="input-section">
-        <label htmlFor="quantity">Quantity</label>
-        <input
-          type="number"
-          id="quantity"
-          value={quantity}
-          onChange={handleQuantityChange}
-        />
-        <label htmlFor="reference">Reference</label>
-        <input
-          type="text"
-          id="reference"
-          value={reference}
-          onChange={handleReferenceChange}
-        />
-        <button onClick={handleCaptureStock}>Capture Stock</button>
-      </div>
       <div className="info-section">
         {isLoading && <p>Loading...</p>}
         {error && <p style={{ color: "red" }}>{error}</p>}
@@ -202,6 +185,23 @@ const BarcodeScanner: React.FC = () => {
             </p>
           </div>
         )}
+      </div>
+      <div className="input-section">
+        <label htmlFor="quantity">Quantity</label>
+        <input
+          type="number"
+          id="quantity"
+          value={quantity}
+          onChange={handleQuantityChange}
+        />
+        <label htmlFor="reference">Reference</label>
+        <input
+          type="text"
+          id="reference"
+          value={reference}
+          onChange={handleReferenceChange}
+        />
+        <button onClick={handleCaptureStock}>Capture Stock</button>
       </div>
       <style jsx>{`
         .container {
