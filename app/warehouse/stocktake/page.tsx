@@ -2,15 +2,6 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { Html5Qrcode } from "html5-qrcode";
-import {
-  TextInput,
-  NumberInput,
-  Button,
-  Box,
-  Text,
-  Loader,
-  Alert,
-} from "@mantine/core";
 
 interface StockInfo {
   StockLink: number;
@@ -66,8 +57,6 @@ const BarcodeScanner: React.FC = () => {
   const [stockInfo, setStockInfo] = useState<StockInfo | null>(null);
   const [lastSuccessfulScan, setLastSuccessfulScan] =
     useState<StockInfo | null>(null);
-  const [stockTakeReference, setStockTakeReference] = useState<string>("");
-  const [quantity, setQuantity] = useState<number | "">("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
@@ -126,13 +115,8 @@ const BarcodeScanner: React.FC = () => {
     console.error("Error scanning barcode/QR code:", err);
   };
 
-  const handleCaptureStock = () => {
-    // Logic to capture stock with the quantity
-    console.log("Stock captured with quantity:", quantity);
-  };
-
   return (
-    <Box
+    <div
       style={{
         display: "flex",
         flexDirection: "column",
@@ -140,76 +124,50 @@ const BarcodeScanner: React.FC = () => {
         margin: "20px",
       }}
     >
-      <Text size="xl" fw={700} mb="md">
-        Scan Barcode/QR Code
-      </Text>
+      <h1>Scan Barcode/QR Code</h1>
       <div
         id={scannerId}
-        style={{
-          width: "300px",
-          height: "300px",
-          marginBottom: "20px",
-          zIndex: 1,
-        }}
+        style={{ width: "300px", height: "300px", marginBottom: "20px" }}
       ></div>
-      <TextInput
-        label="Stock Take Reference"
-        value={stockTakeReference}
-        onChange={(event) => setStockTakeReference(event.currentTarget.value)}
-        style={{ marginBottom: "20px", zIndex: 0 }}
-      />
-      {isLoading && <Loader size="sm" />}
-      {error && (
-        <Alert color="red" style={{ marginBottom: "20px" }}>
-          {error}
-        </Alert>
-      )}
+      {isLoading && <p>Loading...</p>}
+      {error && <p style={{ color: "red" }}>{error}</p>}
       {stockInfo && (
-        <Box style={{ textAlign: "left", marginBottom: "20px" }}>
-          <Text fw={700}>Stock Information</Text>
-          <Text>
+        <div style={{ textAlign: "left", marginTop: "20px" }}>
+          <h2>Stock Information</h2>
+          <p>
             <strong>Stock Link:</strong> {stockInfo.StockLink}
-          </Text>
-          <Text>
+          </p>
+          <p>
             <strong>Code:</strong> {stockInfo.Code}
-          </Text>
-          <Text>
+          </p>
+          <p>
             <strong>Description:</strong> {stockInfo.Description_1}
-          </Text>
-          <Text>
+          </p>
+          <p>
             <strong>Full Description:</strong> {stockInfo.ucIIDesc1}
-          </Text>
-          <Text>
+          </p>
+          <p>
             <strong>Details:</strong> {stockInfo.ucIIDesc2}{" "}
             {stockInfo.ucIIDesc3}
-          </Text>
-          <Text>
+          </p>
+          <p>
             <strong>Item Cost:</strong> {stockInfo.ItemCost}
-          </Text>
-          <Text>
+          </p>
+          <p>
             <strong>Quantity On Hand:</strong> {stockInfo.QtyOnHand}
-          </Text>
-          <Text>
+          </p>
+          <p>
             <strong>Barcode:</strong> {stockInfo.Barcode}
-          </Text>
-          <Text>
+          </p>
+          <p>
             <strong>Export Price:</strong> {stockInfo.ExPr1}
-          </Text>
-          <Text>
+          </p>
+          <p>
             <strong>Import Price:</strong> {stockInfo.InPr1}
-          </Text>
-        </Box>
+          </p>
+        </div>
       )}
-      <NumberInput
-        label="Quantity"
-        value={quantity}
-        onChange={(value) => setQuantity(value === "" ? "" : Number(value))}
-        style={{ marginBottom: "20px", width: "100%" }}
-      />
-      <Button onClick={handleCaptureStock} fullWidth>
-        Capture Stock
-      </Button>
-    </Box>
+    </div>
   );
 };
 
