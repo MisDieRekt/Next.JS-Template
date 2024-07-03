@@ -206,7 +206,7 @@ const BarcodeScanner: React.FC = () => {
           id="quantity"
           value={quantity}
           onChange={handleQuantityChange}
-          style={{ width: "100%", padding: "8px", marginTop: "30px" }}
+          style={{ width: "100%", padding: "8px", marginTop: "50px" }}
         />
         <label htmlFor="reference" style={{ marginTop: "10px" }}>
           Reference
