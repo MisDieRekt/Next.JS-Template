@@ -241,6 +241,10 @@ const BarcodeScanner: React.FC = () => {
           width: 100%;
           padding: 10px;
           margin-top: 20px;
+          background-color: red;
+          color: white;
+          border: none;
+          border-radius: 5px;
         }
         .info-section {
           margin-top: 20px;
