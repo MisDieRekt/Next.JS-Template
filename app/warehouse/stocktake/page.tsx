@@ -2,6 +2,15 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { Html5Qrcode } from "html5-qrcode";
+import {
+  TextInput,
+  NumberInput,
+  Button,
+  Box,
+  Text,
+  Loader,
+  Alert,
+} from "@mantine/core";
 
 interface StockInfo {
   StockLink: number;
@@ -123,7 +132,7 @@ const BarcodeScanner: React.FC = () => {
   };
 
   return (
-    <div
+    <Box
       style={{
         display: "flex",
         flexDirection: "column",
@@ -131,88 +140,76 @@ const BarcodeScanner: React.FC = () => {
         margin: "20px",
       }}
     >
-      <h1>Scan Barcode/QR Code</h1>
+      <Text size="xl" fw={700} mb="md">
+        Scan Barcode/QR Code
+      </Text>
       <div
         id={scannerId}
-        style={{ width: "300px", height: "300px", marginBottom: "20px" }}
+        style={{
+          width: "300px",
+          height: "300px",
+          marginBottom: "20px",
+          zIndex: 1,
+        }}
       ></div>
-      <div style={{ marginBottom: "20px" }}>
-        <label
-          htmlFor="stock-take-reference"
-          style={{ display: "block", marginBottom: "10px" }}
-        >
-          Stock Take Reference:
-        </label>
-        <input
-          type="text"
-          id="stock-take-reference"
-          value={stockTakeReference}
-          onChange={(e) => setStockTakeReference(e.target.value)}
-          style={{ width: "100%", padding: "8px", fontSize: "16px" }}
-        />
-      </div>
-      {isLoading && <p>Loading...</p>}
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      <TextInput
+        label="Stock Take Reference"
+        value={stockTakeReference}
+        onChange={(event) => setStockTakeReference(event.currentTarget.value)}
+        style={{ marginBottom: "20px", zIndex: 0 }}
+      />
+      {isLoading && <Loader size="sm" />}
+      {error && (
+        <Alert color="red" style={{ marginBottom: "20px" }}>
+          {error}
+        </Alert>
+      )}
       {stockInfo && (
-        <div style={{ textAlign: "left", marginBottom: "20px" }}>
-          <h2>Stock Information</h2>
-          {/* <p>
+        <Box style={{ textAlign: "left", marginBottom: "20px" }}>
+          <Text fw={700}>Stock Information</Text>
+          <Text>
             <strong>Stock Link:</strong> {stockInfo.StockLink}
-          </p> */}
-          <p>
+          </Text>
+          <Text>
             <strong>Code:</strong> {stockInfo.Code}
-          </p>
-          <p>
+          </Text>
+          <Text>
             <strong>Description:</strong> {stockInfo.Description_1}
-          </p>
-          <p>
+          </Text>
+          <Text>
             <strong>Full Description:</strong> {stockInfo.ucIIDesc1}
-          </p>
-          <p>
+          </Text>
+          <Text>
             <strong>Details:</strong> {stockInfo.ucIIDesc2}{" "}
             {stockInfo.ucIIDesc3}
-          </p>
-          <p>
+          </Text>
+          <Text>
             <strong>Item Cost:</strong> {stockInfo.ItemCost}
-          </p>
-          <p>
+          </Text>
+          <Text>
             <strong>Quantity On Hand:</strong> {stockInfo.QtyOnHand}
-          </p>
-          <p>
+          </Text>
+          <Text>
             <strong>Barcode:</strong> {stockInfo.Barcode}
-          </p>
-          <p>
+          </Text>
+          <Text>
             <strong>Export Price:</strong> {stockInfo.ExPr1}
-          </p>
-          <p>
+          </Text>
+          <Text>
             <strong>Import Price:</strong> {stockInfo.InPr1}
-          </p>
-        </div>
+          </Text>
+        </Box>
       )}
-      <div style={{ marginBottom: "20px", textAlign: "left", width: "100%" }}>
-        <label
-          htmlFor="quantity"
-          style={{ display: "block", marginBottom: "10px" }}
-        >
-          Quantity:
-        </label>
-        <input
-          type="number"
-          id="quantity"
-          value={quantity}
-          onChange={(e) =>
-            setQuantity(e.target.value === "" ? "" : Number(e.target.value))
-          }
-          style={{ width: "100%", padding: "8px", fontSize: "16px" }}
-        />
-      </div>
-      <button
-        onClick={handleCaptureStock}
-        style={{ padding: "10px 20px", fontSize: "16px" }}
-      >
+      <NumberInput
+        label="Quantity"
+        value={quantity}
+        onChange={(value) => setQuantity(value === "" ? "" : Number(value))}
+        style={{ marginBottom: "20px", width: "100%" }}
+      />
+      <Button onClick={handleCaptureStock} fullWidth>
         Capture Stock
-      </button>
-    </div>
+      </Button>
+    </Box>
   );
 };
 
