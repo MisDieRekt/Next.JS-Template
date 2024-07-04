@@ -52,6 +52,39 @@ const fetchStockInfo = async (
   }
 };
 
+const postStockTake = async (
+  batchNo: string,
+  chrono: string,
+  stkCode: string,
+  stkItem: string,
+  count: number
+) => {
+  try {
+    const response = await fetch("/toms/warehouse/stocktake", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        BatchNo: batchNo,
+        Chrono: chrono,
+        StkCode: stkCode,
+        StkItem: stkItem,
+        Count: count,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Network response was not ok " + response.statusText);
+    }
+
+    const data = await response.json();
+    console.log("Stock take successful:", data);
+  } catch (error) {
+    console.error("Failed to post stock take:", error);
+  }
+};
+
 const BarcodeScanner: React.FC = () => {
   const [barcode, setBarcode] = useState<string | null>(null);
   const [stockInfo, setStockInfo] = useState<StockInfo | null>(null);
@@ -130,6 +163,14 @@ const BarcodeScanner: React.FC = () => {
 
   const handleCaptureStock = () => {
     if (stockInfo) {
+      const batchNo = reference;
+      const chrono = new Date().toISOString();
+      const count = Number(quantity);
+      const stkCode = stockInfo.Code;
+      const stkItem = stockInfo.Description_1;
+
+      postStockTake(batchNo, chrono, stkCode, stkItem, count);
+
       console.log("Captured stock:", {
         ...stockInfo,
         quantity,
