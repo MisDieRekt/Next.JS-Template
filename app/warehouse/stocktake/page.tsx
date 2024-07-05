@@ -70,13 +70,16 @@ const postStockTake = async (
   console.log("Sending to API:", payload);
 
   try {
-    const response = await fetch("/toms/warehouse/stocktake", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
+    const response = await fetch(
+      "https://dkapi.totai.co.za:9191/toms/warehouse/stocktake",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      }
+    );
 
     if (!response.ok) {
       throw new Error("Network response was not ok " + response.statusText);
