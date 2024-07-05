@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { Html5Qrcode } from "html5-qrcode";
+import { Html5Qrcode, CameraDevice } from "html5-qrcode";
 
 interface StockInfo {
   StockLink: number;
@@ -100,6 +100,8 @@ const BarcodeScanner: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
   const scannerId = "html5qr-code-scanner";
+  const [cameraIndex, setCameraIndex] = useState<number>(0);
+  const [cameras, setCameras] = useState<CameraDevice[]>([]);
 
   useEffect(() => {
     if (!html5QrCodeRef.current) {
@@ -109,34 +111,39 @@ const BarcodeScanner: React.FC = () => {
 
     Html5Qrcode.getCameras().then((devices) => {
       if (devices && devices.length) {
-        const rearCamera =
-          devices.find((device) =>
-            device.label.toLowerCase().includes("back")
-          ) || devices[0];
-        const cameraId = rearCamera.id;
-        html5QrCode
-          .start(
-            cameraId,
-            {
-              fps: 10, // Optional, frame per second for qr code scanning
-              qrbox: { width: 250, height: 250 }, // Optional, if you want bounded box UI
-              aspectRatio: 1.0,
-            },
-            handleScan,
-            handleError
-          )
-          .catch((err) => {
-            console.error("Unable to start scanning", err);
-          });
+        setCameras(devices);
+        startScanner(devices[0].id);
       }
     });
 
     return () => {
-      html5QrCode
-        .stop()
-        .catch((err) => console.error("Unable to stop scanning", err));
+      if (html5QrCodeRef.current) {
+        html5QrCodeRef.current
+          .stop()
+          .catch((err) => console.error("Unable to stop scanning", err));
+      }
     };
   }, []);
+
+  const startScanner = (cameraId: string) => {
+    if (!html5QrCodeRef.current) {
+      return;
+    }
+    html5QrCodeRef.current
+      .start(
+        cameraId,
+        {
+          fps: 10, // Optional, frame per second for qr code scanning
+          qrbox: { width: 250, height: 250 }, // Optional, if you want bounded box UI
+          aspectRatio: 1.0,
+        },
+        handleScan,
+        handleError
+      )
+      .catch((err) => {
+        console.error("Unable to start scanning", err);
+      });
+  };
 
   const handleScan = (decodedText: string) => {
     setBarcode(decodedText);
@@ -187,9 +194,27 @@ const BarcodeScanner: React.FC = () => {
     }
   };
 
+  const toggleCamera = () => {
+    if (cameras.length > 1) {
+      const newIndex = (cameraIndex + 1) % cameras.length;
+      setCameraIndex(newIndex);
+      const newCameraId = cameras[newIndex].id;
+
+      if (html5QrCodeRef.current) {
+        html5QrCodeRef.current
+          .stop()
+          .then(() => {
+            startScanner(newCameraId);
+          })
+          .catch((err) => console.error("Unable to stop scanning", err));
+      }
+    }
+  };
+
   return (
     <div className="container">
       <div className="scanner-section">
+        <button onClick={toggleCamera}>Toggle Camera</button>
         <h1>Scan Barcode/QR Code</h1>
         <div id={scannerId} className="scanner"></div>
       </div>
@@ -199,9 +224,6 @@ const BarcodeScanner: React.FC = () => {
         {stockInfo && (
           <div className="stock-info">
             <h2>Stock Information</h2>
-            {/* <p>
-              <strong>Stock Link:</strong> {stockInfo.StockLink}
-            </p> */}
             <p>
               <strong>Code:</strong> {stockInfo.Code}
             </p>
@@ -215,21 +237,9 @@ const BarcodeScanner: React.FC = () => {
               <strong>Details:</strong> {stockInfo.ucIIDesc2}{" "}
               {stockInfo.ucIIDesc3}
             </p>
-            {/* <p>
-              <strong>Item Cost:</strong> {stockInfo.ItemCost}
-            </p> */}
-            {/* <p>
-              <strong>Quantity On Hand:</strong> {stockInfo.QtyOnHand}
-            </p> */}
             <p>
               <strong>Barcode:</strong> {stockInfo.Barcode}
             </p>
-            {/* <p>
-              <strong>Export Price:</strong> {stockInfo.ExPr1}
-            </p> */}
-            {/* <p>
-              <strong>Import Price:</strong> {stockInfo.InPr1}
-            </p> */}
           </div>
         )}
       </div>
@@ -261,6 +271,7 @@ const BarcodeScanner: React.FC = () => {
           margin-bottom: 20px;
           width: 100%;
           max-width: 300px;
+          text-align: center;
         }
         .scanner {
           width: 100%;
