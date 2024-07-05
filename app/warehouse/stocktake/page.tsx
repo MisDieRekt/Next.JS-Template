@@ -59,19 +59,23 @@ const postStockTake = async (
   stkItem: string,
   count: number
 ) => {
+  const payload = {
+    BatchNo: batchNo,
+    Chrono: chrono,
+    StkCode: stkCode,
+    StkItem: stkItem,
+    Count: count,
+  };
+
+  console.log("Sending to API:", payload);
+
   try {
     const response = await fetch("/toms/warehouse/stocktake", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        BatchNo: batchNo,
-        Chrono: chrono,
-        StkCode: stkCode,
-        StkItem: stkItem,
-        Count: count,
-      }),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
@@ -162,19 +166,21 @@ const BarcodeScanner: React.FC = () => {
   };
 
   const handleCaptureStock = () => {
-    if (stockInfo) {
+    if (lastSuccessfulScan) {
       const batchNo = reference;
       const chrono = new Date().toISOString();
       const count = Number(quantity);
-      const stkCode = stockInfo.Code;
-      const stkItem = stockInfo.Description_1;
+      const stkCode = lastSuccessfulScan.Code;
+      const stkItem = lastSuccessfulScan.Description_1;
 
       postStockTake(batchNo, chrono, stkCode, stkItem, count);
 
       console.log("Captured stock:", {
-        ...stockInfo,
-        quantity,
-        reference,
+        BatchNo: batchNo,
+        Chrono: chrono,
+        StkCode: stkCode,
+        StkItem: stkItem,
+        Count: count,
       });
     } else {
       console.error("No stock information available to capture.");
