@@ -201,13 +201,7 @@ const BarcodeScanner: React.FC = () => {
       const stkCode = lastSuccessfulScan.Code;
       const stkItem = lastSuccessfulScan.Description_1;
 
-      const success = await postStockTake(
-        batchNo,
-        chrono,
-        stkCode,
-        stkItem,
-        count
-      );
+      const success = await postStockTake(batchNo, chrono, stkCode, stkItem, count);
 
       if (success) {
         // Clear form values and reset state after successful submission
@@ -250,9 +244,7 @@ const BarcodeScanner: React.FC = () => {
   return (
     <div className="container">
       <div className="scanner-section">
-        <button className="toggle-button" onClick={toggleCamera}>
-          Toggle Camera
-        </button>
+        <button className="toggle-button" onClick={toggleCamera}>Toggle Camera</button>
         <h1>Scan Barcode/QR Code</h1>
         <div id={scannerId} className="scanner"></div>
       </div>
@@ -296,9 +288,7 @@ const BarcodeScanner: React.FC = () => {
           value={reference}
           onChange={handleReferenceChange}
         />
-        <button className="button" onClick={handleCaptureStock}>
-          Capture Stock
-        </button>
+        <button className="button" onClick={handleCaptureStock}>Capture Stock</button>
       </div>
       <style jsx>{`
         .container {
