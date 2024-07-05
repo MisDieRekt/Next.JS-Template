@@ -87,8 +87,10 @@ const postStockTake = async (
 
     const data = await response.json();
     console.log("Stock take successful:", data);
+    return true;
   } catch (error) {
     console.error("Failed to post stock take:", error);
+    return false;
   }
 };
 
@@ -136,8 +138,8 @@ const BarcodeScanner: React.FC = () => {
       .start(
         cameraId,
         {
-          fps: 10, // Optional, frame per second for qr code scanning
-          qrbox: { width: 250, height: 250 }, // Optional, if you want bounded box UI
+          fps: 10,
+          qrbox: { width: 250, height: 250 },
           aspectRatio: 1.0,
         },
         handleScan,
@@ -154,7 +156,7 @@ const BarcodeScanner: React.FC = () => {
       decodedText,
       (data) => {
         setStockInfo(data);
-        setLastSuccessfulScan(data); // Store the last successful scan
+        setLastSuccessfulScan(data);
       },
       setIsLoading,
       setError
@@ -175,7 +177,7 @@ const BarcodeScanner: React.FC = () => {
     setReference(event.target.value);
   };
 
-  const handleCaptureStock = () => {
+  const handleCaptureStock = async () => {
     if (lastSuccessfulScan) {
       const batchNo = reference;
       const chrono = new Date().toISOString();
@@ -183,7 +185,22 @@ const BarcodeScanner: React.FC = () => {
       const stkCode = lastSuccessfulScan.Code;
       const stkItem = lastSuccessfulScan.Description_1;
 
-      postStockTake(batchNo, chrono, stkCode, stkItem, count);
+      const success = await postStockTake(
+        batchNo,
+        chrono,
+        stkCode,
+        stkItem,
+        count
+      );
+
+      if (success) {
+        // Clear form values and reset state after successful submission
+        setQuantity("");
+        setReference("");
+        setStockInfo(null);
+        setBarcode(null);
+        setLastSuccessfulScan(null);
+      }
 
       console.log("Captured stock:", {
         BatchNo: batchNo,
@@ -261,7 +278,9 @@ const BarcodeScanner: React.FC = () => {
           value={reference}
           onChange={handleReferenceChange}
         />
-        <button onClick={handleCaptureStock}>Capture Stock</button>
+        <button className="button" onClick={handleCaptureStock}>
+          Capture Stock
+        </button>
       </div>
       <style jsx>{`
         .container {
@@ -302,10 +321,6 @@ const BarcodeScanner: React.FC = () => {
           width: 100%;
           padding: 10px;
           margin-top: 20px;
-          background-color: red;
-          color: white;
-          border: none;
-          border-radius: 5px;
         }
         .info-section {
           margin-top: 20px;
