@@ -2,6 +2,8 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { Html5Qrcode, CameraDevice } from "html5-qrcode";
+import { useRouter } from "next/router";
+import { createClient } from "@/utils/supabase/client";
 
 interface StockInfo {
   StockLink: number;
@@ -107,8 +109,22 @@ const BarcodeScanner: React.FC = () => {
   const scannerId = "html5qr-code-scanner";
   const [cameraIndex, setCameraIndex] = useState<number>(0);
   const [cameras, setCameras] = useState<CameraDevice[]>([]);
+  const router = useRouter();
 
   useEffect(() => {
+    const checkUser = async () => {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        router.push("/login");
+      }
+    };
+
+    checkUser();
+
     if (!html5QrCodeRef.current) {
       html5QrCodeRef.current = new Html5Qrcode(scannerId);
     }
@@ -128,7 +144,7 @@ const BarcodeScanner: React.FC = () => {
           .catch((err) => console.error("Unable to stop scanning", err));
       }
     };
-  }, []);
+  }, [router]);
 
   const startScanner = (cameraId: string) => {
     if (!html5QrCodeRef.current) {
@@ -234,7 +250,9 @@ const BarcodeScanner: React.FC = () => {
   return (
     <div className="container">
       <div className="scanner-section">
-        <button onClick={toggleCamera}>Toggle Camera</button>
+        <button className="toggle-button" onClick={toggleCamera}>
+          Toggle Camera
+        </button>
         <h1>Scan Barcode/QR Code</h1>
         <div id={scannerId} className="scanner"></div>
       </div>
@@ -321,6 +339,35 @@ const BarcodeScanner: React.FC = () => {
           width: 100%;
           padding: 10px;
           margin-top: 20px;
+          background-color: blue;
+          color: white;
+          border: none;
+          border-radius: 20px;
+          cursor: pointer;
+          transition: background-color 0.3s, transform 0.3s;
+        }
+        .input-section button:active {
+          background-color: darkblue;
+          transform: scale(0.95);
+        }
+        .input-section button:focus {
+          outline: none;
+        }
+        .toggle-button {
+          background-color: magenta;
+          color: white;
+          border: none;
+          border-radius: 20px;
+          padding: 10px;
+          cursor: pointer;
+          transition: background-color 0.3s, transform 0.3s;
+        }
+        .toggle-button:active {
+          background-color: darkmagenta;
+          transform: scale(0.95);
+        }
+        .toggle-button:focus {
+          outline: none;
         }
         .info-section {
           margin-top: 20px;
