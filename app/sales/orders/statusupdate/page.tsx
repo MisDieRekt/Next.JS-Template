@@ -239,6 +239,13 @@ const Example: React.FC = () => {
           statuses.find(
             (status) => status.StatusNum === row.original.CurrentStatus
           )?.StatusText || "Unknown",
+        filterFn: (row, _columnId, filterValue) => {
+          const statusText = statuses.find(
+            (status) =>
+              status.StatusNum === row.getValue<number>("CurrentStatus")
+          )?.StatusText;
+          return statusText === filterValue;
+        },
       },
       {
         accessorKey: "SetStatus",
