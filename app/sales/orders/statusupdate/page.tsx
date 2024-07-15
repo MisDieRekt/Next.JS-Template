@@ -21,7 +21,6 @@ import {
   LoadingOverlay,
   Select,
 } from "@mantine/core";
-import { DateInput } from "@mantine/dates";
 import { notifications } from "@mantine/notifications";
 import { debounce } from "lodash";
 
@@ -119,7 +118,6 @@ const Example: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [currentUser, setCurrentUser] = useState<string | null>(null);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
 
   useEffect(() => {
     fetchUser(setCurrentUser);
@@ -352,12 +350,6 @@ const Example: React.FC = () => {
 
       return (
         <Flex p="md" justify="space-between" align="center">
-          <DateInput
-            value={selectedDate}
-            onChange={setSelectedDate}
-            label="Select Capture Date"
-            placeholder="Select Capture Date"
-          />
           <Flex gap="xs">
             <MRT_GlobalFilterTextInput table={table} />
             <MRT_ToggleFiltersButton table={table} />
