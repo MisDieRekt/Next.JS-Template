@@ -22,8 +22,8 @@ import {
   Select,
 } from "@mantine/core";
 import { DateInput } from "@mantine/dates";
-import { notifications } from "@mantine/notifications"; // Import notifications object directly
-import { debounce } from "lodash"; // Import lodash debounce
+import { notifications } from "@mantine/notifications";
+import { debounce } from "lodash";
 
 interface Order {
   AutoIndex: number;
@@ -32,10 +32,15 @@ interface Order {
   CurrentStatus: number;
   Customer_Name: string | null;
   Delivery_Method: string | null;
-  isEditing: boolean; // Add isEditing property to track edit mode
+  isEditing: boolean;
 }
 
-const statuses = [
+interface Status {
+  StatusNum: number;
+  StatusText: string;
+}
+
+const statuses: Status[] = [
   { StatusNum: 1, StatusText: "Order Captured" },
   { StatusNum: 2, StatusText: "Order At Finance" },
   { StatusNum: 3, StatusText: "Returned From Finance" },
@@ -50,71 +55,81 @@ const statuses = [
   { StatusNum: 21, StatusText: "Sent To Collections" },
 ];
 
-const Example = () => {
+const fetchUser = async (
+  setCurrentUser: React.Dispatch<React.SetStateAction<string | null>>
+): Promise<void> => {
+  try {
+    const response = await fetch("/api/fetchUser");
+    const result = await response.json();
+    if (response.ok) {
+      console.log("User data:", result.user);
+      setCurrentUser(result.user.email);
+    } else {
+      throw new Error(result.error);
+    }
+  } catch (error) {
+    console.error("Error fetching user data:", error);
+  }
+};
+
+const fetchData = async (
+  setData: React.Dispatch<React.SetStateAction<Order[]>>,
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>,
+  setError: React.Dispatch<React.SetStateAction<Error | null>>
+): Promise<void> => {
+  setLoading(true);
+  setError(null);
+  try {
+    const response = await fetch(
+      process.env.NEXT_PUBLIC_API_URL + "/sales/fetchcaptured",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ requestOrders: "fetchcaptured" }),
+      }
+    );
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+    const result = await response.json();
+    setData(
+      result.unmatchedOrders.map((order: any) => ({
+        AutoIndex: order.AutoIndex,
+        OrderNum: order.OrderNum,
+        Priority: order.Priority,
+        CurrentStatus: 1,
+        Customer_Name: order.AccountName ?? "",
+        Delivery_Method: order.Delivery_Method ?? "",
+        isEditing: false,
+      }))
+    );
+    console.log("Fetched data:", result.unmatchedOrders);
+  } catch (error) {
+    setError(error as Error);
+    console.error("Error fetching data:", error);
+  } finally {
+    setLoading(false);
+  }
+};
+
+const Example: React.FC = () => {
   const [data, setData] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
 
-  const fetchUser = useCallback(async () => {
-    try {
-      const response = await fetch("/api/fetchUser");
-      const result = await response.json();
-      if (response.ok) {
-        console.log("User data:", result.user); // Log user data for debugging
-        setCurrentUser(result.user.email);
-      } else {
-        throw new Error(result.error);
-      }
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-    }
+  useEffect(() => {
+    fetchUser(setCurrentUser);
   }, []);
 
   useEffect(() => {
-    fetchUser();
-  }, [fetchUser]);
-
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await fetch(
-        process.env.NEXT_PUBLIC_API_URL + "/sales/fetchcaptured",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ requestOrders: "fetchcaptured" }),
-        }
-      );
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-      const result = await response.json();
-      setData(
-        result.unmatchedOrders.map((order: any) => ({
-          AutoIndex: order.AutoIndex,
-          OrderNum: order.OrderNum,
-          Priority: order.Priority,
-          CurrentStatus: 1, // Assuming a default status if not provided
-          Customer_Name: order.AccountName ?? "", // Default to empty string if null
-          Delivery_Method: order.Delivery_Method ?? "", // Default to empty string if null
-          isEditing: false, // Initialize isEditing to false
-        }))
-      );
-      console.log("Fetched data:", result.unmatchedOrders); // Debug log fetched data
-    } catch (error) {
-      setError(error as Error);
-      console.error("Error fetching data:", error); // Debug log error
-    } finally {
-      setLoading(false);
-    }
+    fetchData(setData, setLoading, setError);
   }, []);
 
-  const setStatuses = async (selectedOrders: Order[]) => {
+  const setStatuses = async (selectedOrders: Order[]): Promise<void> => {
     const ordersToUpdate = selectedOrders.map((order) => ({
       AutoIndex: order.AutoIndex,
       OrdNum: order.OrderNum,
@@ -150,7 +165,7 @@ const Example = () => {
       });
 
       setTimeout(() => {
-        fetchData(); // Refresh table data after updating orders with a delay
+        fetchData(setData, setLoading, setError);
       }, 2000);
     } catch (error) {
       console.error("Error updating order statuses:", error);
@@ -163,11 +178,7 @@ const Example = () => {
     }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  const toggleEdit = (index: number) => {
+  const toggleEdit = (index: number): void => {
     setData((prevData) =>
       prevData.map((order, i) =>
         i === index ? { ...order, isEditing: !order.isEditing } : order
@@ -279,7 +290,7 @@ const Example = () => {
 
   const tableOptions: MRT_TableOptions<Order> = {
     columns,
-    data: useMemo(() => data, [data]), // Memoize data to avoid unnecessary re-renders
+    data: useMemo(() => data, [data]),
     enableColumnFilterModes: true,
     enableColumnOrdering: true,
     enableFacetedValues: true,
@@ -289,7 +300,7 @@ const Example = () => {
     mantineSelectCheckboxProps: {
       color: "red",
     },
-    getRowId: (originalRow) => originalRow.AutoIndex.toString(), // Convert number to string
+    getRowId: (originalRow) => originalRow.AutoIndex.toString(),
     initialState: {
       showColumnFilters: true,
       showGlobalFilter: true,
@@ -306,7 +317,7 @@ const Example = () => {
     },
     mantineSearchTextInputProps: {
       placeholder: "Search Orders",
-      onChange: debounce((e) => table.setGlobalFilter(e.target.value), 300), // Debounce the search input
+      onChange: debounce((e) => table.setGlobalFilter(e.target.value), 300),
     },
     mantineTableBodyRowProps: ({ row }) => ({
       className:
@@ -329,7 +340,6 @@ const Example = () => {
             placeholder="Select Capture Date"
           />
           <Flex gap="xs">
-            {/* import MRT sub-components */}
             <MRT_GlobalFilterTextInput table={table} />
             <MRT_ToggleFiltersButton table={table} />
           </Flex>
@@ -354,7 +364,10 @@ const Example = () => {
     <div>
       {error && <Text color="red">{error.message}</Text>}
       <Group>
-        <Button onClick={fetchData} color="blue">
+        <Button
+          onClick={() => fetchData(setData, setLoading, setError)}
+          color="blue"
+        >
           Refresh
         </Button>
       </Group>
