@@ -280,13 +280,9 @@ const Example: React.FC = () => {
             </Text>
           ),
         filterFn: (row, _columnId, filterValue) => {
-          const status = statuses.find(
+          const statusNum = statuses.find(
             (status) => status.StatusText === filterValue
-          );
-          if (!status) {
-            return false;
-          }
-          const statusNum = status.StatusNum;
+          )?.StatusNum;
           return row.getValue<number>("CurrentStatus") === statusNum;
         },
       },
