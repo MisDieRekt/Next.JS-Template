@@ -86,7 +86,7 @@ const fetchData = async (
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ requestOrders: "fetchcaptured" }),
+        body: JSON.stringify({ requestOrders: "GetOrders" }),
       }
     );
     if (!response.ok) {
