@@ -98,8 +98,8 @@ const fetchData = async (
         AutoIndex: order.AutoIndex,
         OrderNum: order.OrderNum,
         Priority: order.Priority,
-        CurrentStatus: 1,
-        Customer_Name: order.AccountName ?? "",
+        CurrentStatus: order.CurrentStatus,
+        Customer_Name: order.Customer_Name ?? "",
         Delivery_Method: order.Delivery_Method ?? "",
         isEditing: false,
       }))
