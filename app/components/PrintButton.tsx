@@ -1,4 +1,6 @@
 // app/components/PrintButton.tsx
+"use client";
+
 import React from "react";
 import { Button } from "@mantine/core";
 
