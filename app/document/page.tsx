@@ -1,6 +1,6 @@
 // app/picking-slip/page.tsx
 import React from "react";
-import styles from ".PickingSlip.module.css";
+import styles from "./PickingSlip.module.css";
 import dynamic from "next/dynamic";
 
 interface Item {
