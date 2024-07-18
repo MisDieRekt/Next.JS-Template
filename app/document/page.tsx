@@ -1,7 +1,7 @@
 // app/picking-slip/page.tsx
 import React from "react";
 import { Button } from "@mantine/core";
-import styles from "./styles/PickingSlip.module.css";
+import styles from "./PickingSlip.module.css";
 
 interface Item {
   itemCode: string;
