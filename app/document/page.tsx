@@ -1,7 +1,7 @@
 // app/picking-slip/page.tsx
 import React from "react";
-import { Button } from "@mantine/core";
-import styles from "./PickingSlip.module.css";
+import styles from ".PickingSlip.module.css";
+import dynamic from "next/dynamic";
 
 interface Item {
   itemCode: string;
@@ -40,11 +40,12 @@ interface SampleData {
   };
 }
 
-const PickingSlip: React.FC = () => {
-  const handlePrint = () => {
-    window.print();
-  };
+// Dynamically import the PrintButton component
+const PrintButton = dynamic(() => import("../components/PrintButton"), {
+  ssr: false,
+});
 
+const PickingSlip: React.FC = () => {
   const sampleData: SampleData = {
     company: {
       name: "D.K. GAS APPLIANCES (PTY) LTD",
@@ -183,7 +184,7 @@ const PickingSlip: React.FC = () => {
             </div>
           </div>
         </div>
-        <Button onClick={handlePrint}>Print</Button>
+        <PrintButton />
       </div>
     </div>
   );
