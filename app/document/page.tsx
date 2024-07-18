@@ -1,7 +1,7 @@
 // app/picking-slip/page.tsx
 import React from "react";
 import { Button } from "@mantine/core";
-import styles from "./PickingSlip.module.css";
+import styles from "../../styles/PickingSlip.module.css";
 
 interface Item {
   itemCode: string;
@@ -93,96 +93,98 @@ const PickingSlip: React.FC = () => {
   };
 
   return (
-    <div className={styles.pickingSlipContainer}>
-      <h1>Picking Slip</h1>
-      <div className={styles.pickingSlipHeader}>
-        <div>
-          <strong>{sampleData.company.name}</strong>
-          <p>{sampleData.company.address}</p>
+    <div className={styles.pickingSlipRoot}>
+      <div className={styles.pickingSlipContainer}>
+        <h1>Picking Slip</h1>
+        <div className={styles.pickingSlipHeader}>
+          <div>
+            <strong>{sampleData.company.name}</strong>
+            <p>{sampleData.company.address}</p>
+          </div>
+          <div className={styles.pickingSlipTo}>
+            <strong>To:</strong>
+            <p>{sampleData.recipient.code}</p>
+            <p>{sampleData.recipient.name}</p>
+            <p>{sampleData.recipient.details}</p>
+          </div>
         </div>
-        <div className={styles.pickingSlipTo}>
-          <strong>To:</strong>
-          <p>{sampleData.recipient.code}</p>
-          <p>{sampleData.recipient.name}</p>
-          <p>{sampleData.recipient.details}</p>
+        <div className={styles.pickingSlipOrderDetails}>
+          <div>
+            <strong>Account:</strong> {sampleData.order.account}
+          </div>
+          <div>
+            <strong>Date:</strong> {sampleData.order.date}
+          </div>
+          <div>
+            <strong>Due Date:</strong> {sampleData.order.dueDate}
+          </div>
+          <div>
+            <strong>Order No:</strong> {sampleData.order.orderNo}
+          </div>
+          <div>
+            <strong>Delivery Mode:</strong> {sampleData.order.deliveryMode}
+          </div>
+          <div>
+            <strong>Cust Order No:</strong> {sampleData.order.custOrderNo}
+          </div>
         </div>
-      </div>
-      <div className={styles.pickingSlipOrderDetails}>
-        <div>
-          <strong>Account:</strong> {sampleData.order.account}
-        </div>
-        <div>
-          <strong>Date:</strong> {sampleData.order.date}
-        </div>
-        <div>
-          <strong>Due Date:</strong> {sampleData.order.dueDate}
-        </div>
-        <div>
-          <strong>Order No:</strong> {sampleData.order.orderNo}
-        </div>
-        <div>
-          <strong>Delivery Mode:</strong> {sampleData.order.deliveryMode}
-        </div>
-        <div>
-          <strong>Cust Order No:</strong> {sampleData.order.custOrderNo}
-        </div>
-      </div>
-      <table className={styles.pickingSlipTable}>
-        <thead>
-          <tr>
-            <th>Item Code</th>
-            <th>Item Description</th>
-            <th>Rep</th>
-            <th>Price</th>
-            <th>Units Required</th>
-            <th>Qty Picked</th>
-            <th>Checked By</th>
-          </tr>
-        </thead>
-        <tbody>
-          {sampleData.items.map((item, index) => (
-            <tr key={index}>
-              <td>{item.itemCode}</td>
-              <td>
-                {item.description}
-                <br />
-                <small>SKU: {item.sku}</small>
-              </td>
-              <td>{item.rep}</td>
-              <td>{item.price}</td>
-              <td>{item.unitsRequired}</td>
-              <td>{item.qtyPicked}</td>
-              <td></td>
+        <table className={styles.pickingSlipTable}>
+          <thead>
+            <tr>
+              <th>Item Code</th>
+              <th>Item Description</th>
+              <th>Rep</th>
+              <th>Price</th>
+              <th>Units Required</th>
+              <th>Qty Picked</th>
+              <th>Checked By</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-      <div className={styles.pickingSlipFooter}>
-        <div className={styles.pickingSlipLeft}>
-          <div>Picked by: </div>
-          <div>Date: </div>
-          <div>Invoice Date: </div>
-          <div>Invoice time: </div>
+          </thead>
+          <tbody>
+            {sampleData.items.map((item, index) => (
+              <tr key={index}>
+                <td>{item.itemCode}</td>
+                <td>
+                  {item.description}
+                  <br />
+                  <small>SKU: {item.sku}</small>
+                </td>
+                <td>{item.rep}</td>
+                <td>{item.price}</td>
+                <td>{item.unitsRequired}</td>
+                <td>{item.qtyPicked}</td>
+                <td></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <div className={styles.pickingSlipFooter}>
+          <div className={styles.pickingSlipLeft}>
+            <div>Picked by: </div>
+            <div>Date: </div>
+            <div>Invoice Date: </div>
+            <div>Invoice time: </div>
+          </div>
+          <div className={styles.pickingSlipRight}>
+            <div>
+              <strong>Total (Excl):</strong> {sampleData.totals.excl}
+            </div>
+            <div>
+              <strong>Tax:</strong> {sampleData.totals.tax}
+            </div>
+            <div>
+              <strong>Total (Incl):</strong> {sampleData.totals.incl}
+            </div>
+            <div>
+              <strong>Discount:</strong> {sampleData.totals.discount}
+            </div>
+            <div>
+              <strong>Total (Incl):</strong> {sampleData.totals.incl}
+            </div>
+          </div>
         </div>
-        <div className={styles.pickingSlipRight}>
-          <div>
-            <strong>Total (Excl):</strong> {sampleData.totals.excl}
-          </div>
-          <div>
-            <strong>Tax:</strong> {sampleData.totals.tax}
-          </div>
-          <div>
-            <strong>Total (Incl):</strong> {sampleData.totals.incl}
-          </div>
-          <div>
-            <strong>Discount:</strong> {sampleData.totals.discount}
-          </div>
-          <div>
-            <strong>Total (Incl):</strong> {sampleData.totals.incl}
-          </div>
-        </div>
+        <Button onClick={handlePrint}>Print</Button>
       </div>
-      <Button onClick={handlePrint}>Print</Button>
     </div>
   );
 };
