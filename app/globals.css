@@ -66,3 +66,9 @@
 .bold-text {
   font-weight: bold;
 }
+
+@media print {
+  .no-print {
+    display: none;
+  }
+}
