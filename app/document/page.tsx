@@ -184,7 +184,9 @@ const PickingSlip: React.FC = () => {
             </div>
           </div>
         </div>
-        <PrintButton />
+        <div className="no-print">
+          <PrintButton />
+        </div>
       </div>
     </div>
   );

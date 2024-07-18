@@ -17,8 +17,9 @@
 }
 
 .pickingSlipContainer {
-  width: 210mm;
-  height: 297mm;
+  width: 100%;
+  max-width: 210mm;
+  height: auto;
   padding: 10mm;
   box-sizing: border-box;
   border: 1px solid #000;
@@ -55,4 +56,13 @@
 
 .pickingSlipFooter .pickingSlipLeft, .pickingSlipFooter .pickingSlipRight {
   width: 45%;
+}
+
+@media print {
+  .pickingSlipRoot {
+    height: auto;
+  }
+  .no-print {
+    display: none;
+  }
 }
