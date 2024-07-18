@@ -58,19 +58,14 @@
 }
 
 @media print {
-  body * {
+  .pickingSlipRoot.printing * {
     visibility: hidden;
   }
-  .pickingSlipContainer, .pickingSlipContainer * {
+  .pickingSlipRoot.printing .pickingSlipContainer, 
+  .pickingSlipRoot.printing .pickingSlipContainer * {
     visibility: visible;
   }
-  .pickingSlipContainer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    margin: 0;
-    padding: 0;
-    border: none;
+  .no-print {
+    display: none;
   }
 }

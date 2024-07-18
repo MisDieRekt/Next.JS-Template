@@ -1,5 +1,5 @@
 // app/picking-slip/page.tsx
-import React from "react";
+import React, { useRef } from "react";
 import styles from "./PickingSlip.module.css";
 import dynamic from "next/dynamic";
 
@@ -46,6 +46,16 @@ const PrintButton = dynamic(() => import("../components/PrintButton"), {
 });
 
 const PickingSlip: React.FC = () => {
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  const handlePrint = () => {
+    if (rootRef.current) {
+      rootRef.current.classList.add(styles.printing);
+      window.print();
+      rootRef.current.classList.remove(styles.printing);
+    }
+  };
+
   const sampleData: SampleData = {
     company: {
       name: "D.K. GAS APPLIANCES (PTY) LTD",
@@ -94,7 +104,7 @@ const PickingSlip: React.FC = () => {
   };
 
   return (
-    <div className={styles.pickingSlipRoot}>
+    <div ref={rootRef} className={styles.pickingSlipRoot}>
       <div className={styles.pickingSlipContainer}>
         <h1>Picking Slip</h1>
         <div className={styles.pickingSlipHeader}>
@@ -185,7 +195,7 @@ const PickingSlip: React.FC = () => {
           </div>
         </div>
         <div className="no-print">
-          <PrintButton />
+          <PrintButton onClick={handlePrint} />
         </div>
       </div>
     </div>

@@ -4,12 +4,12 @@
 import React from "react";
 import { Button } from "@mantine/core";
 
-const PrintButton: React.FC = () => {
-  const handlePrint = () => {
-    window.print();
-  };
+interface PrintButtonProps {
+  onClick: () => void;
+}
 
-  return <Button onClick={handlePrint}>Print</Button>;
+const PrintButton: React.FC<PrintButtonProps> = ({ onClick }) => {
+  return <Button onClick={onClick}>Print</Button>;
 };
 
 export default PrintButton;
