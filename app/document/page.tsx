@@ -1,4 +1,6 @@
 // app/picking-slip/page.tsx
+"use client";
+
 import React, { useRef } from "react";
 import styles from "./PickingSlip.module.css";
 import dynamic from "next/dynamic";
