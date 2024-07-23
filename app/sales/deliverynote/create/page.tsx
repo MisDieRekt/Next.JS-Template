@@ -71,24 +71,31 @@ const DeliveryNotePage: React.FC = () => {
     };
 
     const fetchStockItems = async () => {
-      const response = await fetch(
-        "https://dkapi.totai.co.za:9191/sage/stock/check/allstock",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ StockRequest: "StockRequestAPI" }),
-        }
-      );
+      try {
+        const response = await fetch(
+          "https://dkapi.totai.co.za:9191/sage/stock/check/allstock",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ StockRequest: "StockRequestAPI" }),
+          }
+        );
 
-      if (response.ok) {
-        const data = await response.json();
-        return data.map((item: any) => ({
-          StockLink: item.StockLink,
-          ucIIFullDescription: item.ucIIFullDescription,
-        }));
-      } else {
+        if (response.ok) {
+          const data = await response.json();
+          console.log("Stock items data:", data);
+          return data.map((item: any) => ({
+            StockLink: item.StockLink,
+            ucIIFullDescription: item.ucIIFullDescription,
+          }));
+        } else {
+          console.error("Failed to fetch stock items:", response.statusText);
+          return [];
+        }
+      } catch (error) {
+        console.error("Error fetching stock items:", error);
         return [];
       }
     };
