@@ -137,7 +137,7 @@ const DeliveryNotePage: React.FC = () => {
             <Select
               label="Priority"
               placeholder="Select priority"
-              data={["High", "Medium", "Low"]}
+              data={["URGENT!", "High", "Normal"]}
               value={form.values.priority}
               onChange={(priority) => form.setFieldValue("priority", priority!)}
             />
