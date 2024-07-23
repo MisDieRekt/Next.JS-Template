@@ -165,6 +165,7 @@ const DeliveryNotePage: React.FC = () => {
         {form.values.items.map((item, index) => (
           <Group key={item.id} mt="sm">
             <Select
+              searchable
               placeholder="Select stock item"
               data={stockItems.map((stock) => ({
                 value: stock.id,
