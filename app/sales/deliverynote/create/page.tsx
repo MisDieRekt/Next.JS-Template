@@ -13,7 +13,6 @@ import {
   Box,
   Text,
 } from "@mantine/core";
-import { DatePicker } from "@mantine/dates";
 import { useForm } from "@mantine/form";
 
 // Define types
@@ -113,11 +112,7 @@ const DeliveryNotePage: React.FC = () => {
         </Title>
         <Grid>
           <Grid.Col span={6}>
-            <Text>Date</Text>
-            <DatePicker
-              value={form.values.date}
-              onChange={(date) => form.setFieldValue("date", date as Date)}
-            />
+            <Text>Date: {form.values.date.toLocaleDateString()}</Text>
           </Grid.Col>
           <Grid.Col span={6}>
             <Select
