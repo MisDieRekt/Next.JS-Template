@@ -86,7 +86,10 @@ const DeliveryNotePage: React.FC = () => {
         if (response.ok) {
           const data = await response.json();
           console.log("Stock items data:", data);
-          return data.map((item: any) => ({
+          const filteredData = data.filter(
+            (item: any) => item.ucIIFullDescription !== null
+          );
+          return filteredData.map((item: any) => ({
             StockLink: item.StockLink,
             ucIIFullDescription: item.ucIIFullDescription,
           }));
