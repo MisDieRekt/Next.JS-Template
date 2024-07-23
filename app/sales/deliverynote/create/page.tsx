@@ -32,8 +32,8 @@ interface Customer {
 }
 
 interface StockItem {
-  id: string;
-  name: string;
+  StockLink: number;
+  ucIIFullDescription: string;
 }
 
 interface CurrentUser {
@@ -58,7 +58,6 @@ const DeliveryNotePage: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<string>("");
 
   useEffect(() => {
-    // Mock API calls
     const fetchCustomers = () => {
       return new Promise<Customer[]>((resolve) => {
         setTimeout(() => {
@@ -71,16 +70,27 @@ const DeliveryNotePage: React.FC = () => {
       });
     };
 
-    const fetchStockItems = () => {
-      return new Promise<StockItem[]>((resolve) => {
-        setTimeout(() => {
-          resolve([
-            { id: "1", name: "Item A" },
-            { id: "2", name: "Item B" },
-            { id: "3", name: "Item C" },
-          ]);
-        }, 1000);
-      });
+    const fetchStockItems = async () => {
+      const response = await fetch(
+        "https://dkapi.totai.co.za:9191/sage/stock/check/allstock",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ StockRequest: "StockRequestAPI" }),
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        return data.map((item: any) => ({
+          StockLink: item.StockLink,
+          ucIIFullDescription: item.ucIIFullDescription,
+        }));
+      } else {
+        return [];
+      }
     };
 
     const fetchCurrentUser = () => {
@@ -91,7 +101,6 @@ const DeliveryNotePage: React.FC = () => {
       });
     };
 
-    // Replace mock API calls with real API calls when ready
     fetchCustomers().then((data) => setCustomers(data));
     fetchStockItems().then((data) => setStockItems(data));
     fetchCurrentUser().then((data) => setCurrentUser(data.name));
@@ -168,8 +177,8 @@ const DeliveryNotePage: React.FC = () => {
               searchable
               placeholder="Select stock item"
               data={stockItems.map((stock) => ({
-                value: stock.id,
-                label: stock.name,
+                value: stock.StockLink.toString(),
+                label: stock.ucIIFullDescription,
               }))}
               value={item.stockItem}
               onChange={(stockItem) => {
