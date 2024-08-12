@@ -200,12 +200,13 @@ const BarcodeScanner: React.FC = () => {
 
   const handleCaptureStock = async () => {
     if (lastSuccessfulScan && userName) {
-      const batchNo = reference;
-      const chrono = new Date().toISOString();
-      const count = Number(quantity);
-      const stkCode = lastSuccessfulScan.Code;
-      const stkItem = lastSuccessfulScan.Description_1;
+      const batchNo = reference; // Use the reference input as BatchNo
+      const chrono = new Date().toISOString(); // Use the current time as Chrono
+      const count = Number(quantity); // Convert quantity input to a number
+      const stkCode = lastSuccessfulScan.Code; // Use the stock code from the last scan
+      const stkItem = lastSuccessfulScan.Description_1; // Use the description from the last scan
 
+      // Post the stock take
       const success = await postStockTake(
         batchNo,
         chrono,
