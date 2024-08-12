@@ -3,7 +3,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Html5Qrcode, CameraDevice } from "html5-qrcode";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/utils/supabase/client";
 
 interface StockInfo {
   StockLink: number;
@@ -115,21 +114,23 @@ const BarcodeScanner: React.FC = () => {
   const router = useRouter();
 
   useEffect(() => {
-    const checkUser = async () => {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
+    const fetchUser = async () => {
+      try {
+        const response = await fetch("/api/fetchUser");
+        const result = await response.json();
+        if (response.ok) {
+          console.log("User data:", result.user); // Log user data for debugging
+          setUserName(result.user.email); // or result.user.name if available
+        } else {
+          throw new Error(result.error);
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
         router.push("/login");
-      } else {
-        // Assuming user has a 'name' attribute in Supabase
-        setUserName(user.user_metadata.name || "Anonymous");
       }
     };
 
-    checkUser();
+    fetchUser();
 
     if (!html5QrCodeRef.current) {
       html5QrCodeRef.current = new Html5Qrcode(scannerId);
@@ -206,6 +207,8 @@ const BarcodeScanner: React.FC = () => {
       const count = Number(quantity);
       const stkCode = lastSuccessfulScan.Code;
       const stkItem = lastSuccessfulScan.Description_1;
+
+      console.log("Using userName for stock take:", userName);
 
       const success = await postStockTake(
         batchNo,
