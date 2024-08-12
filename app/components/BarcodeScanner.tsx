@@ -59,7 +59,8 @@ const postStockTake = async (
   chrono: string,
   stkCode: string,
   stkItem: string,
-  count: number
+  count: number,
+  name: string
 ) => {
   const payload = {
     BatchNo: batchNo,
@@ -67,6 +68,7 @@ const postStockTake = async (
     StkCode: stkCode,
     StkItem: stkItem,
     Count: count,
+    Name: name,
   };
 
   console.log("Sending to API:", payload);
@@ -109,6 +111,7 @@ const BarcodeScanner: React.FC = () => {
   const scannerId = "html5qr-code-scanner";
   const [cameraIndex, setCameraIndex] = useState<number>(0);
   const [cameras, setCameras] = useState<CameraDevice[]>([]);
+  const [userName, setUserName] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -120,6 +123,8 @@ const BarcodeScanner: React.FC = () => {
 
       if (!user) {
         router.push("/login");
+      } else {
+        setUserName(user.user_metadata.full_name || user.email);
       }
     };
 
@@ -194,7 +199,7 @@ const BarcodeScanner: React.FC = () => {
   };
 
   const handleCaptureStock = async () => {
-    if (lastSuccessfulScan) {
+    if (lastSuccessfulScan && userName) {
       const batchNo = reference;
       const chrono = new Date().toISOString();
       const count = Number(quantity);
@@ -206,7 +211,8 @@ const BarcodeScanner: React.FC = () => {
         chrono,
         stkCode,
         stkItem,
-        count
+        count,
+        userName
       );
 
       if (success) {
@@ -224,9 +230,12 @@ const BarcodeScanner: React.FC = () => {
         StkCode: stkCode,
         StkItem: stkItem,
         Count: count,
+        Name: userName,
       });
     } else {
-      console.error("No stock information available to capture.");
+      console.error(
+        "No stock information available to capture or user not logged in."
+      );
     }
   };
 
