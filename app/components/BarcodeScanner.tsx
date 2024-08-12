@@ -59,7 +59,8 @@ const postStockTake = async (
   chrono: string,
   stkCode: string,
   stkItem: string,
-  count: number
+  count: number,
+  name: string
 ) => {
   const payload = {
     BatchNo: batchNo,
@@ -67,6 +68,7 @@ const postStockTake = async (
     StkCode: stkCode,
     StkItem: stkItem,
     Count: count,
+    Name: name,
   };
 
   console.log("Sending to API:", payload);
@@ -105,6 +107,7 @@ const BarcodeScanner: React.FC = () => {
   const [reference, setReference] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string | null>(null);
   const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
   const scannerId = "html5qr-code-scanner";
   const [cameraIndex, setCameraIndex] = useState<number>(0);
@@ -120,6 +123,9 @@ const BarcodeScanner: React.FC = () => {
 
       if (!user) {
         router.push("/login");
+      } else {
+        // Assuming user has a 'name' attribute in Supabase
+        setUserName(user.user_metadata.name || "Anonymous");
       }
     };
 
@@ -194,7 +200,7 @@ const BarcodeScanner: React.FC = () => {
   };
 
   const handleCaptureStock = async () => {
-    if (lastSuccessfulScan) {
+    if (lastSuccessfulScan && userName) {
       const batchNo = reference;
       const chrono = new Date().toISOString();
       const count = Number(quantity);
@@ -206,7 +212,8 @@ const BarcodeScanner: React.FC = () => {
         chrono,
         stkCode,
         stkItem,
-        count
+        count,
+        userName
       );
 
       if (success) {
@@ -224,6 +231,7 @@ const BarcodeScanner: React.FC = () => {
         StkCode: stkCode,
         StkItem: stkItem,
         Count: count,
+        Name: userName,
       });
     } else {
       console.error("No stock information available to capture.");
