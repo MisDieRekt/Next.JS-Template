@@ -3,7 +3,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Html5Qrcode, CameraDevice } from "html5-qrcode";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/utils/supabase/client";
 
 interface StockInfo {
   StockLink: number;
@@ -59,7 +58,8 @@ const postStockTake = async (
   chrono: string,
   stkCode: string,
   stkItem: string,
-  count: number
+  count: number,
+  name: string
 ) => {
   const payload = {
     BatchNo: batchNo,
@@ -67,6 +67,7 @@ const postStockTake = async (
     StkCode: stkCode,
     StkItem: stkItem,
     Count: count,
+    name: name,
   };
 
   console.log("Sending to API:", payload);
@@ -105,6 +106,7 @@ const BarcodeScanner: React.FC = () => {
   const [reference, setReference] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string | null>(null);
   const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
   const scannerId = "html5qr-code-scanner";
   const [cameraIndex, setCameraIndex] = useState<number>(0);
@@ -112,18 +114,23 @@ const BarcodeScanner: React.FC = () => {
   const router = useRouter();
 
   useEffect(() => {
-    const checkUser = async () => {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
+    const fetchUser = async () => {
+      try {
+        const response = await fetch("/api/fetchUser");
+        const result = await response.json();
+        if (response.ok) {
+          console.log("User data:", result.user); // Log user data for debugging
+          setUserName(result.user.email); // or result.user.name if available
+        } else {
+          throw new Error(result.error);
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
         router.push("/login");
       }
     };
 
-    checkUser();
+    fetchUser();
 
     if (!html5QrCodeRef.current) {
       html5QrCodeRef.current = new Html5Qrcode(scannerId);
@@ -194,19 +201,22 @@ const BarcodeScanner: React.FC = () => {
   };
 
   const handleCaptureStock = async () => {
-    if (lastSuccessfulScan) {
+    if (lastSuccessfulScan && userName) {
       const batchNo = reference;
       const chrono = new Date().toISOString();
       const count = Number(quantity);
       const stkCode = lastSuccessfulScan.Code;
       const stkItem = lastSuccessfulScan.Description_1;
 
+      console.log("Using userName for stock take:", userName);
+
       const success = await postStockTake(
         batchNo,
         chrono,
         stkCode,
         stkItem,
-        count
+        count,
+        userName
       );
 
       if (success) {
@@ -224,6 +234,7 @@ const BarcodeScanner: React.FC = () => {
         StkCode: stkCode,
         StkItem: stkItem,
         Count: count,
+        Name: userName,
       });
     } else {
       console.error("No stock information available to capture.");
