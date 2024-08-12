@@ -68,7 +68,7 @@ const postStockTake = async (
     StkCode: stkCode,
     StkItem: stkItem,
     Count: count,
-    Name: name,
+    name: name,
   };
 
   console.log("Sending to API:", payload);
