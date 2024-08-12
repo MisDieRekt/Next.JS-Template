@@ -1,6 +1,6 @@
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
-import BarcodeScanner from "@/components/BarcodeScanner";
+import BarcodeScanner from "@/components/BarcodeScannerSecond";
 
 export default async function StocktakePage() {
   const supabase = createClient();

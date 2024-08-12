@@ -44,7 +44,7 @@ const DeliveryNotePage: React.FC = () => {
   const form = useForm<FormValues>({
     initialValues: {
       date: new Date(),
-      priority: "",
+      priority: "Normal",
       customerName: "",
       createdBy: "",
       dnn: "",
