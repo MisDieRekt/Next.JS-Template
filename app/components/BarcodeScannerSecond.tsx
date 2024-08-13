@@ -97,6 +97,40 @@ const postStockTake = async (
   }
 };
 
+const fetchReference = async (
+  setReference: (ref: string) => void,
+  setError: (error: string | null) => void
+) => {
+  try {
+    const response = await fetch(
+      "https://dkapi.totai.co.za:9191/toms/warehouse/stocktake/ref",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ RefCheck: "refcheck" }),
+        credentials: "include",
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch reference: " + response.statusText);
+    }
+
+    const data = await response.json();
+    if (data.length > 0) {
+      setReference(data[0].StockTakeRef);
+    }
+  } catch (error: any) {
+    console.error("Failed to fetch reference:", error);
+    setError(
+      "Failed to fetch reference: " +
+        (error.response ? error.response.data.message : error.message)
+    );
+  }
+};
+
 const BarcodeScanner: React.FC = () => {
   const [barcode, setBarcode] = useState<string | null>(null);
   const [stockInfo, setStockInfo] = useState<StockInfo | null>(null);
@@ -131,6 +165,7 @@ const BarcodeScanner: React.FC = () => {
     };
 
     fetchUser();
+    fetchReference(setReference, setError);
 
     if (!html5QrCodeRef.current) {
       html5QrCodeRef.current = new Html5Qrcode(scannerId);
