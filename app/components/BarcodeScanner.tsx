@@ -120,9 +120,7 @@ const fetchReference = async (
 
     const data = await response.json();
     if (data.length > 0) {
-      const ref = data[0].StockTakeRef;
-      setReference(ref);
-      localStorage.setItem("stockTakeReference", ref); // Store reference in localStorage
+      setReference(data[0].StockTakeRef);
     }
   } catch (error: any) {
     console.error("Failed to fetch reference:", error);
@@ -167,14 +165,7 @@ const BarcodeScanner: React.FC = () => {
     };
 
     fetchUser();
-
-    // Retrieve reference from localStorage or fetch if not available
-    const savedReference = localStorage.getItem("stockTakeReference");
-    if (savedReference) {
-      setReference(savedReference);
-    } else {
-      fetchReference(setReference, setError);
-    }
+    fetchReference(setReference, setError);
 
     if (!html5QrCodeRef.current) {
       html5QrCodeRef.current = new Html5Qrcode(scannerId);
@@ -197,6 +188,10 @@ const BarcodeScanner: React.FC = () => {
     };
   }, [router]);
 
+  useEffect(() => {
+    fetchReference(setReference, setError);
+  }, []); // Ensure fetchReference is called on mount and on refresh
+
   const startScanner = (cameraId: string) => {
     if (!html5QrCodeRef.current) {
       return;
@@ -205,9 +200,9 @@ const BarcodeScanner: React.FC = () => {
       .start(
         cameraId,
         {
-          fps: 30,
+          fps: 10,
           qrbox: { width: 250, height: 250 },
-          aspectRatio: 1.4,
+          aspectRatio: 1.0,
         },
         handleScan,
         handleError
@@ -266,12 +261,10 @@ const BarcodeScanner: React.FC = () => {
       if (success) {
         // Clear form values and reset state after successful submission
         setQuantity("");
+        fetchReference(setReference, setError); // Fetch new reference after submission
         setStockInfo(null);
         setBarcode(null);
         setLastSuccessfulScan(null);
-
-        // Keep the reference in localStorage
-        localStorage.setItem("stockTakeReference", reference);
       }
 
       console.log("Captured stock:", {
