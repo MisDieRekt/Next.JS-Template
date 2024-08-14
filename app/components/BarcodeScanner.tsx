@@ -120,7 +120,9 @@ const fetchReference = async (
 
     const data = await response.json();
     if (data.length > 0) {
-      setReference(data[0].StockTakeRef);
+      const ref = data[0].StockTakeRef;
+      setReference(ref);
+      localStorage.setItem("stockTakeReference", ref); // Store reference in localStorage
     }
   } catch (error: any) {
     console.error("Failed to fetch reference:", error);
@@ -165,7 +167,14 @@ const BarcodeScanner: React.FC = () => {
     };
 
     fetchUser();
-    fetchReference(setReference, setError);
+
+    // Retrieve reference from localStorage or fetch if not available
+    const savedReference = localStorage.getItem("stockTakeReference");
+    if (savedReference) {
+      setReference(savedReference);
+    } else {
+      fetchReference(setReference, setError);
+    }
 
     if (!html5QrCodeRef.current) {
       html5QrCodeRef.current = new Html5Qrcode(scannerId);
@@ -257,10 +266,12 @@ const BarcodeScanner: React.FC = () => {
       if (success) {
         // Clear form values and reset state after successful submission
         setQuantity("");
-        setReference("");
         setStockInfo(null);
         setBarcode(null);
         setLastSuccessfulScan(null);
+
+        // Keep the reference in localStorage
+        localStorage.setItem("stockTakeReference", reference);
       }
 
       console.log("Captured stock:", {
