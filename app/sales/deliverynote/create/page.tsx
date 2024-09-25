@@ -33,6 +33,7 @@ interface Customer {
 
 interface StockItem {
   StockLink: number;
+  Code: string; // Added Code property
   ucIIFullDescription: string;
 }
 
@@ -91,6 +92,7 @@ const DeliveryNotePage: React.FC = () => {
           );
           return filteredData.map((item: any) => ({
             StockLink: item.StockLink,
+            Code: item.Code, // Included Code here
             ucIIFullDescription: item.ucIIFullDescription,
           }));
         } else {
@@ -188,7 +190,7 @@ const DeliveryNotePage: React.FC = () => {
               placeholder="Select stock item"
               data={stockItems.map((stock) => ({
                 value: stock.StockLink.toString(),
-                label: stock.ucIIFullDescription,
+                label: `${stock.Code} - ${stock.ucIIFullDescription}`, // Updated label
               }))}
               value={item.stockItem}
               onChange={(stockItem) => {
