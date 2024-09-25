@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import {
   TextInput,
+  Autocomplete,
   Select,
   Button,
   Group,
@@ -106,7 +107,7 @@ const DeliveryNotePage: React.FC = () => {
           );
           return filteredData.map((item: any) => ({
             StockLink: item.StockLink,
-            Code: item.Code, // Include Code here
+            Code: item.Code,
             ucIIFullDescription: item.ucIIFullDescription,
           }));
         } else {
@@ -140,16 +141,16 @@ const DeliveryNotePage: React.FC = () => {
   };
 
   const handleSubmit = async (values: FormValues) => {
-    // Find the selected customer
+    // Find the selected customer by name (case-insensitive)
     const selectedCustomer = customers.find(
-      (c) => c.id === values.customerName
+      (c) => c.name.toLowerCase() === values.customerName.toLowerCase()
     );
 
     const deliveryNoteData = {
       DNN: values.dnn,
       Chrono: values.date.toISOString(),
-      CustomerName: selectedCustomer ? selectedCustomer.name : "",
-      AccCode: selectedCustomer ? selectedCustomer.AccCode : "",
+      CustomerName: values.customerName,
+      AccCode: selectedCustomer ? selectedCustomer.AccCode : "NEW_CUSTOMER",
       DelMethod: Number(values.deliveryMethod),
       CreatedBy: currentUser,
       Priority: Number(values.priority),
@@ -234,16 +235,13 @@ const DeliveryNotePage: React.FC = () => {
             />
           </Grid.Col>
           <Grid.Col span={6}>
-            <Select
+            <Autocomplete
               label="Customer Name"
-              placeholder="Select customer"
-              data={customers.map((customer) => ({
-                value: customer.id,
-                label: customer.name,
-              }))}
+              placeholder="Select or enter customer"
+              data={customers.map((customer) => customer.name)}
               value={form.values.customerName}
               onChange={(customerName) =>
-                form.setFieldValue("customerName", customerName!)
+                form.setFieldValue("customerName", customerName)
               }
             />
           </Grid.Col>
@@ -279,7 +277,7 @@ const DeliveryNotePage: React.FC = () => {
               placeholder="Select stock item"
               data={stockItems.map((stock) => ({
                 value: stock.StockLink.toString(),
-                label: `${stock.Code} - ${stock.ucIIFullDescription}`, // Updated label
+                label: `${stock.Code} - ${stock.ucIIFullDescription}`,
               }))}
               value={item.stockItem}
               onChange={(stockItem) => {
