@@ -23,30 +23,35 @@ interface FormValues {
   createdBy: string;
   dnn: string;
   deliveryMethod: string;
-  items: Array<{ id: number; stockItem: string; price: number }>;
+  items: Array<{ id: number; stockItem: string; price: number; qty: number }>;
 }
 
 interface Customer {
   id: string;
   name: string;
+  AccCode: string;
 }
 
 interface StockItem {
   StockLink: number;
-  Code: string; // Added Code property
+  Code: string;
   ucIIFullDescription: string;
+}
+
+interface CurrentUser {
+  name: string;
 }
 
 const DeliveryNotePage: React.FC = () => {
   const form = useForm<FormValues>({
     initialValues: {
       date: new Date(),
-      priority: "Normal",
+      priority: "3", // Default to "Normal"
       customerName: "",
       createdBy: "",
       dnn: "",
-      deliveryMethod: "",
-      items: [{ id: 1, stockItem: "", price: 0 }],
+      deliveryMethod: "1",
+      items: [{ id: 1, stockItem: "", price: 0, qty: 0 }],
     },
   });
 
@@ -54,14 +59,27 @@ const DeliveryNotePage: React.FC = () => {
   const [stockItems, setStockItems] = useState<StockItem[]>([]);
   const [currentUser, setCurrentUser] = useState<string>("");
 
+  // Mappings for priorities and delivery methods
+  const priorities = [
+    { value: "1", label: "URGENT!" },
+    { value: "2", label: "High" },
+    { value: "3", label: "Normal" },
+  ];
+
+  const deliveryMethods = [
+    { value: "1", label: "Method 1" },
+    { value: "2", label: "Method 2" },
+    { value: "3", label: "Method 3" },
+  ];
+
   useEffect(() => {
     const fetchCustomers = () => {
       return new Promise<Customer[]>((resolve) => {
         setTimeout(() => {
           resolve([
-            { id: "1", name: "Customer A" },
-            { id: "2", name: "Customer B" },
-            { id: "3", name: "Customer C" },
+            { id: "1", name: "Customer A", AccCode: "ACC123" },
+            { id: "2", name: "Customer B", AccCode: "ACC124" },
+            { id: "3", name: "Customer C", AccCode: "ACC125" },
           ]);
         }, 1000);
       });
@@ -88,7 +106,7 @@ const DeliveryNotePage: React.FC = () => {
           );
           return filteredData.map((item: any) => ({
             StockLink: item.StockLink,
-            Code: item.Code, // Included Code here
+            Code: item.Code, // Include Code here
             ucIIFullDescription: item.ucIIFullDescription,
           }));
         } else {
@@ -101,37 +119,104 @@ const DeliveryNotePage: React.FC = () => {
       }
     };
 
-    // Updated fetchUser function
-    const fetchUser = async () => {
-      try {
-        const response = await fetch("/api/fetchUser");
-        const result = await response.json();
-        if (response.ok) {
-          console.log("User data:", result.user); // Log user data for debugging
-          setCurrentUser(result.user.email);
-        } else {
-          throw new Error(result.error);
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      }
+    const fetchCurrentUser = () => {
+      return new Promise<CurrentUser>((resolve) => {
+        setTimeout(() => {
+          resolve({ name: "John Doe" });
+        }, 1000);
+      });
     };
 
     fetchCustomers().then((data) => setCustomers(data));
     fetchStockItems().then((data) => setStockItems(data));
-    fetchUser(); // Call the updated fetchUser function
+    fetchCurrentUser().then((data) => setCurrentUser(data.name));
   }, []);
 
   const addItem = () => {
     form.setFieldValue("items", [
       ...form.values.items,
-      { id: form.values.items.length + 1, stockItem: "", price: 0 },
+      { id: form.values.items.length + 1, stockItem: "", price: 0, qty: 0 },
     ]);
+  };
+
+  const handleSubmit = async (values: FormValues) => {
+    // Find the selected customer
+    const selectedCustomer = customers.find(
+      (c) => c.id === values.customerName
+    );
+
+    const deliveryNoteData = {
+      DNN: values.dnn,
+      Chrono: values.date.toISOString(),
+      CustomerName: selectedCustomer ? selectedCustomer.name : "",
+      AccCode: selectedCustomer ? selectedCustomer.AccCode : "",
+      DelMethod: Number(values.deliveryMethod),
+      CreatedBy: currentUser,
+      Priority: Number(values.priority),
+      Mode: "Multi",
+    };
+
+    // Build stock items data
+    const stockItemsData = values.items.map((item) => {
+      const stockItem = stockItems.find(
+        (s) => s.StockLink.toString() === item.stockItem
+      );
+
+      return {
+        DNN: values.dnn,
+        StockCode: stockItem ? stockItem.Code : "",
+        Item: stockItem ? stockItem.ucIIFullDescription : "",
+        Price: item.price,
+        Qty: item.qty,
+      };
+    });
+
+    try {
+      // Send delivery note details
+      const deliveryNoteResponse = await fetch(
+        "https://dkapi.totai.co.za:9191/toms/deliverynote/capturedelnote",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify([deliveryNoteData]),
+        }
+      );
+
+      if (!deliveryNoteResponse.ok) {
+        throw new Error("Failed to submit delivery note details");
+      }
+
+      // Send stock items
+      const stockItemsResponse = await fetch(
+        "https://dkapi.totai.co.za:9191/toms/deliverynote/capturestock",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(stockItemsData),
+        }
+      );
+
+      if (!stockItemsResponse.ok) {
+        throw new Error("Failed to submit stock items");
+      }
+
+      // If both requests succeeded
+      alert("Delivery note submitted successfully");
+      // Optionally reset the form
+      form.reset();
+    } catch (error) {
+      console.error("Error submitting delivery note:", error);
+      alert("An error occurred while submitting the delivery note");
+    }
   };
 
   return (
     <Container>
-      <form>
+      <form onSubmit={form.onSubmit(handleSubmit)}>
         <Title order={2} mb="md">
           Create Delivery Note
         </Title>
@@ -143,7 +228,7 @@ const DeliveryNotePage: React.FC = () => {
             <Select
               label="Priority"
               placeholder="Select priority"
-              data={["URGENT!", "High", "Normal"]}
+              data={priorities}
               value={form.values.priority}
               onChange={(priority) => form.setFieldValue("priority", priority!)}
             />
@@ -178,7 +263,7 @@ const DeliveryNotePage: React.FC = () => {
             <Select
               label="Delivery Method"
               placeholder="Select delivery method"
-              data={["Method 1", "Method 2", "Method 3"]}
+              data={deliveryMethods}
               value={form.values.deliveryMethod}
               onChange={(deliveryMethod) =>
                 form.setFieldValue("deliveryMethod", deliveryMethod!)
@@ -212,9 +297,20 @@ const DeliveryNotePage: React.FC = () => {
                 form.setFieldValue("items", items);
               }}
             />
-            <Button color="green" onClick={addItem}>
-              +
-            </Button>
+            <NumberInput
+              placeholder="Qty"
+              value={item.qty}
+              onChange={(qty) => {
+                const items = [...form.values.items];
+                items[index].qty = typeof qty === "number" ? qty : 0;
+                form.setFieldValue("items", items);
+              }}
+            />
+            {index === form.values.items.length - 1 && (
+              <Button color="green" onClick={addItem}>
+                +
+              </Button>
+            )}
           </Group>
         ))}
 
