@@ -174,7 +174,7 @@ const DeliveryNotePage: React.FC = () => {
             <Select
               label="Delivery Method"
               placeholder="Select delivery method"
-              data={["Method 1", "Method 2", "Method 3"]}
+              data={["Collect", "Delivery - IHF", "Courier"]}
               value={form.values.deliveryMethod}
               onChange={(deliveryMethod) =>
                 form.setFieldValue("deliveryMethod", deliveryMethod!)
