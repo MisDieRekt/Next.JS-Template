@@ -37,10 +37,6 @@ interface StockItem {
   ucIIFullDescription: string;
 }
 
-interface CurrentUser {
-  name: string;
-}
-
 const DeliveryNotePage: React.FC = () => {
   const form = useForm<FormValues>({
     initialValues: {
@@ -105,17 +101,25 @@ const DeliveryNotePage: React.FC = () => {
       }
     };
 
-    const fetchCurrentUser = () => {
-      return new Promise<CurrentUser>((resolve) => {
-        setTimeout(() => {
-          resolve({ name: "John Doe" });
-        }, 1000);
-      });
+    // Updated fetchUser function
+    const fetchUser = async () => {
+      try {
+        const response = await fetch("/api/fetchUser");
+        const result = await response.json();
+        if (response.ok) {
+          console.log("User data:", result.user); // Log user data for debugging
+          setCurrentUser(result.user.email);
+        } else {
+          throw new Error(result.error);
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
     };
 
     fetchCustomers().then((data) => setCustomers(data));
     fetchStockItems().then((data) => setStockItems(data));
-    fetchCurrentUser().then((data) => setCurrentUser(data.name));
+    fetchUser(); // Call the updated fetchUser function
   }, []);
 
   const addItem = () => {
@@ -174,7 +178,7 @@ const DeliveryNotePage: React.FC = () => {
             <Select
               label="Delivery Method"
               placeholder="Select delivery method"
-              data={["Collect", "Delivery - IHF", "Courier"]}
+              data={["Method 1", "Method 2", "Method 3"]}
               value={form.values.deliveryMethod}
               onChange={(deliveryMethod) =>
                 form.setFieldValue("deliveryMethod", deliveryMethod!)
