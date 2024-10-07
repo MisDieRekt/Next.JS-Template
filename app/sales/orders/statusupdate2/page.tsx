@@ -40,18 +40,10 @@ interface Status {
 }
 
 const statuses: Status[] = [
-  { StatusNum: 1, StatusText: "Order Captured" },
-  { StatusNum: 2, StatusText: "Order At Finance" },
-  { StatusNum: 3, StatusText: "Returned From Finance" },
-  { StatusNum: 4, StatusText: "Incorrect Pricing" },
-  { StatusNum: 5, StatusText: "New Month Orders" },
-  { StatusNum: 6, StatusText: "Back Order" },
-  { StatusNum: 7, StatusText: "Pending Order - Custom" },
-  { StatusNum: 8, StatusText: "Awaiting Finance Approval" },
-  { StatusNum: 9, StatusText: "Awaiting Confirmation" },
-  { StatusNum: 10, StatusText: "Awaiting Payment" },
   { StatusNum: 11, StatusText: "Sent To Dispatch" },
   { StatusNum: 21, StatusText: "Sent To Collections" },
+  {StatusNum: 12, StatusText: "Recieved In Dispatch"},
+  {StatusNum: 13, StatusText: "Printed In Dispatch"}
 ];
 
 const fetchUser = async (
