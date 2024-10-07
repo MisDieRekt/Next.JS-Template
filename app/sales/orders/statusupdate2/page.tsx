@@ -55,10 +55,6 @@ const statuses: Status[] = [
 ];
 
 
-
-  {StatusNum: 12, StatusText: "Recieved In Dispatch"},
-  {StatusNum: 13, StatusText: "Printed In Dispatch"}
-
 const fetchUser = async (
   setCurrentUser: React.Dispatch<React.SetStateAction<string | null>>
 ): Promise<void> => {
