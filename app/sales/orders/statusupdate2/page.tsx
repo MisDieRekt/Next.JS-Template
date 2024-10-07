@@ -3,7 +3,7 @@
 import "@mantine/core/styles.css";
 import "@mantine/dates/styles.css"; // if using Mantine date picker features
 import "mantine-react-table/styles.css"; // make sure MRT styles are imported
-import { useMemo, useEffect, useState, useCallback } from "react";
+import { useMemo, useEffect, useState } from "react";
 import {
   MantineReactTable,
   useMantineReactTable,
@@ -231,9 +231,29 @@ const Example: React.FC = () => {
           data: statuses.map((status) => status.StatusText),
         },
         Cell: ({ row }) =>
-          statuses.find(
-            (status) => status.StatusNum === row.original.CurrentStatus
-          )?.StatusText || "Unknown",
+          row.original.isEditing ? (
+            <Select
+              data={statuses.map((status) => ({
+                value: status.StatusNum.toString(),
+                label: status.StatusText,
+              }))}
+              value={row.original.CurrentStatus.toString()}
+              onChange={(value) => {
+                const updatedData = data.map((order) =>
+                  order.AutoIndex === row.original.AutoIndex
+                    ? { ...order, CurrentStatus: parseInt(value || "0") }
+                    : order
+                );
+                setData(updatedData);
+              }}
+            />
+          ) : (
+            <Text>
+              {statuses.find(
+                (status) => status.StatusNum === row.original.CurrentStatus
+              )?.StatusText || "Unknown"}
+            </Text>
+          ),
       },
       {
         accessorKey: "Delivery_Method",
@@ -256,11 +276,6 @@ const Example: React.FC = () => {
   const tableOptions: MRT_TableOptions<Order> = {
     columns,
     data: useMemo(() => data, [data]),
-    enableColumnFilterModes: true,
-    enableColumnOrdering: true,
-    enableFacetedValues: true,
-    enableGrouping: true,
-    enableColumnPinning: true,
     enableRowSelection: true,
     mantineSelectCheckboxProps: {
       color: "red",
@@ -274,20 +289,6 @@ const Example: React.FC = () => {
       },
       pagination: { pageSize: 25, pageIndex: 0 },
     },
-    paginationDisplayMode: "pages",
-    positionToolbarAlertBanner: "bottom",
-    mantinePaginationProps: {
-      radius: "xl",
-      size: "sm",
-    },
-    mantineSearchTextInputProps: {
-      placeholder: "Search Orders",
-      onChange: debounce((e) => table.setGlobalFilter(e.target.value), 300),
-    },
-    mantineTableBodyRowProps: ({ row }) => ({
-      className:
-        row.original.Priority === 1 ? "high-priority bold-text" : undefined,
-    }),
     renderTopToolbar: ({ table }) => {
       const handleSetStatuses = () => {
         const selectedRows = table
