@@ -312,7 +312,7 @@ const Example: React.FC = () => {
     enableFacetedValues: true,
     enableGrouping: true,
     enableColumnPinning: true,
-    enableRowSelection: true,
+    enableRowSelection: true, // Ensure row selection is enabled
     mantineSelectCheckboxProps: {
       color: "red",
     },
@@ -344,7 +344,10 @@ const Example: React.FC = () => {
         const selectedRows = table
           .getSelectedRowModel()
           .flatRows.map((row) => row.original);
-        setStatuses(selectedRows);
+        console.log("Selected Rows:", selectedRows); // Debug selected rows
+        if (selectedRows.length > 0) {
+          setStatuses(selectedRows);
+        }
       };
 
       return (
