@@ -1,9 +1,9 @@
 "use client";
 
 import "@mantine/core/styles.css";
-import "@mantine/dates/styles.css";
-import "mantine-react-table/styles.css";
-import { useMemo, useEffect, useState } from "react";
+import "@mantine/dates/styles.css"; // if using Mantine date picker features
+import "mantine-react-table/styles.css"; // make sure MRT styles are imported
+import { useMemo, useEffect, useState, useCallback } from "react";
 import {
   MantineReactTable,
   useMantineReactTable,
@@ -42,7 +42,16 @@ interface Status {
 const statuses: Status[] = [
   { StatusNum: 1, StatusText: "Order Captured" },
   { StatusNum: 2, StatusText: "Order At Finance" },
-  // Add other statuses here...
+  { StatusNum: 3, StatusText: "Returned From Finance" },
+  { StatusNum: 4, StatusText: "Incorrect Pricing" },
+  { StatusNum: 5, StatusText: "New Month Orders" },
+  { StatusNum: 6, StatusText: "Back Order" },
+  { StatusNum: 7, StatusText: "Pending Order - Custom" },
+  { StatusNum: 8, StatusText: "Awaiting Finance Approval" },
+  { StatusNum: 9, StatusText: "Awaiting Confirmation" },
+  { StatusNum: 10, StatusText: "Awaiting Payment" },
+  { StatusNum: 11, StatusText: "Sent To Dispatch" },
+  { StatusNum: 21, StatusText: "Sent To Collections" },
 ];
 
 const fetchUser = async (
@@ -52,6 +61,7 @@ const fetchUser = async (
     const response = await fetch("/api/fetchUser");
     const result = await response.json();
     if (response.ok) {
+      console.log("User data:", result.user);
       setCurrentUser(result.user.email);
     } else {
       throw new Error(result.error);
@@ -94,6 +104,7 @@ const fetchData = async (
         isEditing: false,
       }))
     );
+    console.log("Fetched data:", result.unmatchedOrders);
   } catch (error) {
     setError(error as Error);
     console.error("Error fetching data:", error);
@@ -162,7 +173,6 @@ const Example: React.FC = () => {
     }
   };
 
-  // Function to toggle the edit state of a row
   const toggleEdit = (index: number): void => {
     setData((prevData) =>
       prevData.map((order, i) =>
@@ -190,9 +200,28 @@ const Example: React.FC = () => {
         mantineFilterSelectProps: {
           data: ["Normal", "High"],
         },
-        Cell: ({ row }) => (
-          <Text>{row.original.Priority === 1 ? "High" : "Normal"}</Text>
-        ),
+        Cell: ({ row }) =>
+          row.original.isEditing ? (
+            <Select
+              data={["Normal", "High"]}
+              value={row.original.Priority === 1 ? "High" : "Normal"}
+              onChange={(value) => {
+                const updatedData = data.map((order) =>
+                  order.AutoIndex === row.original.AutoIndex
+                    ? { ...order, Priority: value === "High" ? 1 : 0 }
+                    : order
+                );
+                setData(updatedData);
+              }}
+            />
+          ) : (
+            <Text>{row.original.Priority === 1 ? "High" : "Normal"}</Text>
+          ),
+        filterFn: (row, _columnId, filterValue) => {
+          const priorityText =
+            row.getValue<number>("Priority") === 1 ? "High" : "Normal";
+          return priorityText === filterValue;
+        },
       },
       {
         accessorKey: "CurrentStatus",
@@ -227,6 +256,11 @@ const Example: React.FC = () => {
   const tableOptions: MRT_TableOptions<Order> = {
     columns,
     data: useMemo(() => data, [data]),
+    enableColumnFilterModes: true,
+    enableColumnOrdering: true,
+    enableFacetedValues: true,
+    enableGrouping: true,
+    enableColumnPinning: true,
     enableRowSelection: true,
     mantineSelectCheckboxProps: {
       color: "red",
@@ -240,12 +274,26 @@ const Example: React.FC = () => {
       },
       pagination: { pageSize: 25, pageIndex: 0 },
     },
+    paginationDisplayMode: "pages",
+    positionToolbarAlertBanner: "bottom",
+    mantinePaginationProps: {
+      radius: "xl",
+      size: "sm",
+    },
+    mantineSearchTextInputProps: {
+      placeholder: "Search Orders",
+      onChange: debounce((e) => table.setGlobalFilter(e.target.value), 300),
+    },
+    mantineTableBodyRowProps: ({ row }) => ({
+      className:
+        row.original.Priority === 1 ? "high-priority bold-text" : undefined,
+    }),
     renderTopToolbar: ({ table }) => {
       const handleSetStatuses = () => {
         const selectedRows = table
           .getSelectedRowModel()
           .flatRows.map((row) => row.original);
-        console.log("Selected Rows:", selectedRows); // Debug selected rows
+        console.log("Selected Rows:", selectedRows);
         if (selectedRows.length > 0) {
           setStatuses(selectedRows);
         }
