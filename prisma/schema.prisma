@@ -1,0 +1,84 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+model ordta_DNStockCap {
+  DNN       String  @db.VarChar(15)
+  StockCode String? @db.VarChar(20)
+  Item      String? @db.VarChar(50)
+  Price     Decimal? @db.Decimal(18, 2)
+  Qty       Int?
+
+  @@id([DNN]) // DNN is used as the unique identifier
+}
+
+model ordta_DNCaptured {
+  DNN           String  @id @db.VarChar(20) @unique
+  Chrono        DateTime? @db.SmallDateTime
+  CustomerName  String? @db.VarChar(50)
+  AccCode       String? @db.VarChar(50)
+  DelMethod     Int?
+  CreatedBy     String? @db.VarChar(50)
+  Priority      Int?
+  CurrentStatus Int?
+}
+
+model ordta_OrderFlowSales {
+  AutoIndex                     Int       @id @default(autoincrement()) @db.Int
+  OrderNum                      String?   @db.VarChar(12)
+  Priority                      Int?      @db.Int
+  CurrentStatus                 Int?      @db.Int
+  SentToFin                     Boolean?  @db.Bit
+  SentToDis                     Boolean?  @db.Bit
+  DispToSales                   Boolean?  @db.Bit
+  SalesToDispReturn             Boolean?  @db.Bit
+  FinToSales                    Boolean?  @db.Bit
+  FinToDisp                     Boolean?  @db.Bit
+  DispToFin                     Boolean?  @db.Bit
+  IncorrectPrice                Boolean?  @db.Bit
+  NewMonthOrder                 Boolean?  @db.Bit
+  BackOrder                     Boolean?  @db.Bit
+  PendingOrder                  Boolean?  @db.Bit
+  AwaitingFinApproval           Boolean?  @db.Bit
+  WaitingConfirmation           Boolean?  @db.Bit
+  AwaitingPayment               Boolean?  @db.Bit
+  SentToFinChrono               DateTime? @db.SmallDateTime
+  SentToDisChrono               DateTime? @db.SmallDateTime
+  DispToSalesChrono             DateTime? @db.SmallDateTime
+  SalesToDispReturnChrono       DateTime? @db.SmallDateTime
+  FinToSalesChrono              DateTime? @db.SmallDateTime
+  FinToDispChrono               DateTime? @db.SmallDateTime
+  DispToFinChrono               DateTime? @db.SmallDateTime
+  IncorrectPriceChrono          DateTime? @db.SmallDateTime
+  NewMonthOrderChrono           DateTime? @db.SmallDateTime
+  BackOrderChrono               DateTime? @db.SmallDateTime
+  PendingOrderChrono            DateTime? @db.SmallDateTime
+  AwaitingFinApprovalChrono     DateTime? @db.SmallDateTime
+  WaitingConfirmationChrono     DateTime? @db.SmallDateTime
+  AwaitingPaymentChrono         DateTime? @db.SmallDateTime
+  SentToFinLastPerson           String?   @db.VarChar(30)
+  SentToDisLastPerson           String?   @db.VarChar(30)
+  DispToSalesLastPerson         String?   @db.VarChar(30)
+  SalesToDispReturnLastPerson   String?   @db.VarChar(30)
+  FinToSalesLastPerson          String?   @db.VarChar(30)
+  FinToDispLastPerson           String?   @db.VarChar(30)
+  DispToFinLastPerson           String?   @db.VarChar(30)
+  IncorrectPriceLastPerson      String?   @db.VarChar(30)
+  NewMonthOrderLastPerson       String?   @db.VarChar(30)
+  BackOrderLastPerson           String?   @db.VarChar(30)
+  PendingOrderLastPerson        String?   @db.VarChar(30)
+  AwaitingFinApprovalLastPerson String?   @db.VarChar(30)
+  WaitingConfirmationLastPeron  String?   @db.VarChar(30)
+  AwaitingPaymentLastPerson     String?   @db.VarChar(30)
+}

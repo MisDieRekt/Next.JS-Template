@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   TextInput,
-  Autocomplete,
   Select,
   Button,
   Group,
@@ -24,13 +23,8 @@ interface FormValues {
   createdBy: string;
   dnn: string;
   deliveryMethod: string;
+  deliveryAddress: string;
   items: Array<{ id: number; stockItem: string; price: number; qty: number }>;
-}
-
-interface Customer {
-  id: string;
-  name: string;
-  AccCode: string;
 }
 
 interface StockItem {
@@ -39,11 +33,12 @@ interface StockItem {
   ucIIFullDescription: string;
 }
 
-interface CurrentUser {
-  name: string;
-}
-
 const DeliveryNotePage: React.FC = () => {
+  const [isClient, setIsClient] = useState(false);
+  const [dnn, setDnn] = useState(""); // Direct state management for DNN
+  const [deliveryAddress, setDeliveryAddress] = useState(""); // Direct state management for Delivery Address
+  const [currentUser, setCurrentUser] = useState<string>("");
+
   const form = useForm<FormValues>({
     initialValues: {
       date: new Date(),
@@ -52,13 +47,12 @@ const DeliveryNotePage: React.FC = () => {
       createdBy: "",
       dnn: "",
       deliveryMethod: "1",
+      deliveryAddress: "",
       items: [{ id: 1, stockItem: "", price: 0, qty: 0 }],
     },
   });
 
-  const [customers, setCustomers] = useState<Customer[]>([]);
   const [stockItems, setStockItems] = useState<StockItem[]>([]);
-  const [currentUser, setCurrentUser] = useState<string>("");
 
   // Mappings for priorities and delivery methods
   const priorities = [
@@ -68,22 +62,26 @@ const DeliveryNotePage: React.FC = () => {
   ];
 
   const deliveryMethods = [
-    { value: "1", label: "Method 1" },
-    { value: "2", label: "Method 2" },
-    { value: "3", label: "Method 3" },
+    { value: "1", label: "Collection" },
+    { value: "2", label: "Delivery" },
   ];
 
   useEffect(() => {
-    const fetchCustomers = () => {
-      return new Promise<Customer[]>((resolve) => {
-        setTimeout(() => {
-          resolve([
-            { id: "1", name: "Customer A", AccCode: "ACC123" },
-            { id: "2", name: "Customer B", AccCode: "ACC124" },
-            { id: "3", name: "Customer C", AccCode: "ACC125" },
-          ]);
-        }, 1000);
-      });
+    setIsClient(true);
+
+    const fetchUser = async () => {
+      try {
+        const response = await fetch("/api/fetchUser");
+        const result = await response.json();
+        if (response.ok) {
+          console.log("User data:", result.user); // Log user data for debugging
+          setCurrentUser(result.user.email);
+        } else {
+          throw new Error(result.error);
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
     };
 
     const fetchStockItems = async () => {
@@ -101,7 +99,6 @@ const DeliveryNotePage: React.FC = () => {
 
         if (response.ok) {
           const data = await response.json();
-          console.log("Stock items data:", data);
           const filteredData = data.filter(
             (item: any) => item.ucIIFullDescription !== null
           );
@@ -120,51 +117,36 @@ const DeliveryNotePage: React.FC = () => {
       }
     };
 
-    const fetchCurrentUser = () => {
-      return new Promise<CurrentUser>((resolve) => {
-        setTimeout(() => {
-          resolve({ name: "John Doe" });
-        }, 1000);
-      });
-    };
-
-    fetchCustomers().then((data) => setCustomers(data));
+    fetchUser(); // Fetch the user data
     fetchStockItems().then((data) => setStockItems(data));
-    fetchCurrentUser().then((data) => setCurrentUser(data.name));
   }, []);
 
-  const addItem = () => {
+  const addItem = useCallback(() => {
     form.setFieldValue("items", [
       ...form.values.items,
       { id: form.values.items.length + 1, stockItem: "", price: 0, qty: 0 },
     ]);
-  };
+  }, [form]);
 
   const handleSubmit = async (values: FormValues) => {
-    // Find the selected customer by name (case-insensitive)
-    const selectedCustomer = customers.find(
-      (c) => c.name.toLowerCase() === values.customerName.toLowerCase()
-    );
-
     const deliveryNoteData = {
-      DNN: values.dnn,
+      DNN: dnn,
       Chrono: values.date.toISOString(),
       CustomerName: values.customerName,
-      AccCode: selectedCustomer ? selectedCustomer.AccCode : "NEW_CUSTOMER",
       DelMethod: Number(values.deliveryMethod),
       CreatedBy: currentUser,
       Priority: Number(values.priority),
       Mode: "Multi",
+      DeliveryAddress: deliveryAddress,
     };
 
-    // Build stock items data
     const stockItemsData = values.items.map((item) => {
       const stockItem = stockItems.find(
         (s) => s.StockLink.toString() === item.stockItem
       );
 
       return {
-        DNN: values.dnn,
+        DNN: dnn,
         StockCode: stockItem ? stockItem.Code : "",
         Item: stockItem ? stockItem.ucIIFullDescription : "",
         Price: item.price,
@@ -173,7 +155,6 @@ const DeliveryNotePage: React.FC = () => {
     });
 
     try {
-      // Send delivery note details
       const deliveryNoteResponse = await fetch(
         "https://dkapi.totai.co.za:9191/toms/deliverynote/capturedelnote",
         {
@@ -189,7 +170,6 @@ const DeliveryNotePage: React.FC = () => {
         throw new Error("Failed to submit delivery note details");
       }
 
-      // Send stock items
       const stockItemsResponse = await fetch(
         "https://dkapi.totai.co.za:9191/toms/deliverynote/capturestock",
         {
@@ -205,15 +185,19 @@ const DeliveryNotePage: React.FC = () => {
         throw new Error("Failed to submit stock items");
       }
 
-      // If both requests succeeded
       alert("Delivery note submitted successfully");
-      // Optionally reset the form
       form.reset();
+      setDnn(""); // Reset DNN
+      setDeliveryAddress(""); // Reset Delivery Address
     } catch (error) {
       console.error("Error submitting delivery note:", error);
       alert("An error occurred while submitting the delivery note");
     }
   };
+
+  if (!isClient) {
+    return null;
+  }
 
   return (
     <Container>
@@ -235,13 +219,12 @@ const DeliveryNotePage: React.FC = () => {
             />
           </Grid.Col>
           <Grid.Col span={6}>
-            <Autocomplete
+            <TextInput
               label="Customer Name"
-              placeholder="Select or enter customer"
-              data={customers.map((customer) => customer.name)}
+              placeholder="Enter customer name"
               value={form.values.customerName}
-              onChange={(customerName) =>
-                form.setFieldValue("customerName", customerName)
+              onChange={(event) =>
+                form.setFieldValue("customerName", event.currentTarget.value)
               }
             />
           </Grid.Col>
@@ -251,10 +234,8 @@ const DeliveryNotePage: React.FC = () => {
           <Grid.Col span={6}>
             <TextInput
               label="DNN (Delivery Note Number)"
-              value={form.values.dnn}
-              onChange={(event) =>
-                form.setFieldValue("dnn", event.currentTarget.value)
-              }
+              value={dnn}
+              onChange={(event) => setDnn(event.currentTarget.value)}
             />
           </Grid.Col>
           <Grid.Col span={6}>
@@ -265,6 +246,16 @@ const DeliveryNotePage: React.FC = () => {
               value={form.values.deliveryMethod}
               onChange={(deliveryMethod) =>
                 form.setFieldValue("deliveryMethod", deliveryMethod!)
+              }
+            />
+          </Grid.Col>
+          <Grid.Col span={12}>
+            <TextInput
+              label="Delivery Address"
+              placeholder="Enter delivery address"
+              value={deliveryAddress}
+              onChange={(event) =>
+                setDeliveryAddress(event.currentTarget.value)
               }
             />
           </Grid.Col>

@@ -67,8 +67,25 @@
   font-weight: bold;
 }
 
+/* styles/global.css */
+
 @media print {
-  .no-print {
+  /* Hide the print button */
+  .print-button {
     display: none;
   }
+
+  /* Optional: Adjust table styles for better readability */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th,
+  td {
+    border: 1px solid #000;
+    padding: 8px;
+  }
+
+  /* Other print-specific styles as needed */
 }
