@@ -75,6 +75,9 @@
     display: none;
   }
 
+  .no-print {
+    display: none;
+  }
   /* Optional: Adjust table styles for better readability */
   table {
     width: 100%;
