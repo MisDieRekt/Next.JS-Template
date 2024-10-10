@@ -1,15 +1,25 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { MantineReactTable, type MRT_ColumnDef } from "mantine-react-table";
+import "@mantine/core/styles.css";
+import "@mantine/dates/styles.css";
+import "mantine-react-table/styles.css";
+import { useState, useMemo, useEffect } from "react";
+import {
+  MantineReactTable,
+  type MRT_ColumnDef,
+  MRT_GlobalFilterTextInput,
+  MRT_ToggleFiltersButton,
+} from "mantine-react-table";
 import {
   Box,
   Button,
+  Flex,
   Text,
   Group,
   LoadingOverlay,
   Select,
 } from "@mantine/core";
+import { DateInput } from "@mantine/dates";
 
 interface DeliveryNote {
   DNN: string;
@@ -29,7 +39,14 @@ interface DeliveryNoteTableProps {
 const DeliveryNoteTable = ({ initialData }: DeliveryNoteTableProps) => {
   const [data, setData] = useState<DeliveryNote[]>(initialData);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
+
+  useEffect(() => {
+    if (!initialData || !Array.isArray(initialData)) {
+      setError("Invalid or missing initial data.");
+    }
+  }, [initialData]);
 
   const columns = useMemo<MRT_ColumnDef<DeliveryNote>[]>(
     () => [
@@ -62,12 +79,14 @@ const DeliveryNoteTable = ({ initialData }: DeliveryNoteTableProps) => {
             ]}
             value={row.original.DelMethod.toString()}
             onChange={(value) => {
-              const updatedData = data.map((note) =>
-                note.DNN === row.original.DNN
-                  ? { ...note, DelMethod: parseInt(value || "1", 10) }
-                  : note
-              );
-              setData(updatedData);
+              if (value) {
+                const updatedData = data.map((note) =>
+                  note.DNN === row.original.DNN
+                    ? { ...note, DelMethod: parseInt(value, 10) }
+                    : note
+                );
+                setData(updatedData);
+              }
             }}
           />
         ),
@@ -81,15 +100,21 @@ const DeliveryNoteTable = ({ initialData }: DeliveryNoteTableProps) => {
         header: "Priority",
         Cell: ({ row }) => (
           <Select
-            data={["1", "2", "3"]}
+            data={[
+              { value: "1", label: "Low" },
+              { value: "2", label: "Medium" },
+              { value: "3", label: "High" },
+            ]}
             value={row.original.Priority.toString()}
             onChange={(value) => {
-              const updatedData = data.map((note) =>
-                note.DNN === row.original.DNN
-                  ? { ...note, Priority: parseInt(value || "1", 10) }
-                  : note
-              );
-              setData(updatedData);
+              if (value) {
+                const updatedData = data.map((note) =>
+                  note.DNN === row.original.DNN
+                    ? { ...note, Priority: parseInt(value, 10) }
+                    : note
+                );
+                setData(updatedData);
+              }
             }}
           />
         ),
@@ -104,16 +129,71 @@ const DeliveryNoteTable = ({ initialData }: DeliveryNoteTableProps) => {
 
   return (
     <div>
-      {error && <Text color="red">{error.message}</Text>}
-      <Group>
-        <Button onClick={() => setData(initialData)} color="blue">
-          Reset
-        </Button>
-      </Group>
-      <Box pos="relative" mt="md">
-        <LoadingOverlay visible={loading} />
-        <MantineReactTable columns={columns} data={data} />
-      </Box>
+      {error ? (
+        <Text color="red">{error}</Text>
+      ) : (
+        <>
+          <Group>
+            <Button onClick={() => setData(initialData)} color="blue">
+              Reset
+            </Button>
+          </Group>
+          <Box pos="relative" mt="md">
+            <LoadingOverlay visible={loading} />
+            <MantineReactTable
+              columns={columns}
+              data={data || []}
+              enableColumnFilterModes
+              enableColumnOrdering
+              enableFacetedValues
+              enableGrouping
+              enableColumnPinning
+              enableRowSelection
+              mantineSelectCheckboxProps={{
+                color: "red",
+              }}
+              getRowId={(originalRow: DeliveryNote) => originalRow.DNN}
+              initialState={{
+                showColumnFilters: true,
+                showGlobalFilter: true,
+                columnPinning: {
+                  left: ["mrt-row-expand", "mrt-row-select"],
+                },
+                pagination: { pageSize: 10, pageIndex: 0 },
+              }}
+              paginationDisplayMode="pages"
+              positionToolbarAlertBanner="bottom"
+              mantinePaginationProps={{
+                radius: "xl",
+                size: "sm",
+              }}
+              mantineSearchTextInputProps={{
+                placeholder: "Search Delivery Notes",
+              }}
+              renderTopToolbar={({ table }) => (
+                <Flex p="md" justify="space-between" align="center">
+                  <DateInput
+                    value={selectedDate}
+                    onChange={setSelectedDate}
+                    label="Select Date"
+                    placeholder="Select Date"
+                  />
+                  <Flex gap="xs">
+                    <MRT_GlobalFilterTextInput table={table} />
+                    <MRT_ToggleFiltersButton table={table} />
+                  </Flex>
+                  <Button
+                    color="blue"
+                    onClick={() => console.log("Action button clicked!")}
+                  >
+                    Action
+                  </Button>
+                </Flex>
+              )}
+            />
+          </Box>
+        </>
+      )}
     </div>
   );
 };
