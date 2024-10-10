@@ -1,6 +1,9 @@
 import DeliveryNoteTable from "./DeliveryNoteTable";
 
 const DeliveryNotePage = async () => {
+  // Disable SSL verification for development purposes
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
   try {
     const response = await fetch(
       "https://dkapi.totai.co.za:9191/toms/deliverynote/check",
@@ -22,9 +25,9 @@ const DeliveryNotePage = async () => {
     return <DeliveryNoteTable initialData={data} />;
   } catch (error) {
     console.error("Error fetching delivery notes:", error);
-    // You can render an error state if the fetch fails
     return <div>Error loading delivery notes. Please try again later.</div>;
   }
 };
+
 
 export default DeliveryNotePage;
