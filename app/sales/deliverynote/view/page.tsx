@@ -39,13 +39,16 @@ const DeliveryNoteTable = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch("/api/toms/deliverynote/check", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ requestDelNote: "GetProcessed" }),
-      });
+      const response = await fetch(
+        "https://dkapi.totai.co.za:9191/toms/deliverynote/check",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ requestDelNote: "GetProcessed" }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Network response was not ok");
